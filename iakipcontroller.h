@@ -88,7 +88,6 @@ signals:
     void sweepStartChanged(int channel, double freq);
     void sweepStopChanged(int channel, double freq);
     void sweepStateChanged(int channel, bool enabled);
-
 };
 
 #endif // IAKIPCONTROLLER_H
