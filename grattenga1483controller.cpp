@@ -367,6 +367,289 @@ bool GrattenGa1483Controller::queryFMState(int channel)
     return on;
 }
 
+// ==================== PM модуляция ====================
+
+bool GrattenGa1483Controller::setPMFrequency(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("PMFREQ", freqHz)) return false;
+    QString cmd = buildSetCommand("PMFREQ", freqHz);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return queryPMFrequency(channel); },
+                            freqHz, 1.0);
+}
+
+bool GrattenGa1483Controller::setPMDeviation(int channel, double rad)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("PMDEV", rad)) return false;
+    QString cmd = buildSetCommand("PMDEV", rad);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return queryPMDeviation(channel); },
+                            rad, 0.1);
+}
+
+bool GrattenGa1483Controller::setPMState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = buildSetCommand("PMSTATE", enable ? 1.0 : 0.0);
+    bool ok = verifySetCommand(cmd,
+                               [this, channel]() { return queryPMState(channel); },
+                               enable);
+    if (ok) emit pmStateChanged(channel, enable);
+    return ok;
+}
+
+double GrattenGa1483Controller::queryPMFrequency(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("PMFREQ"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_pmFreqCache[channel] = val; return val; }
+    return 0.0;
+}
+
+double GrattenGa1483Controller::queryPMDeviation(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("PMDEV"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_pmDevCache[channel] = val; return val; }
+    return 0.0;
+}
+
+bool GrattenGa1483Controller::queryPMState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("PMSTATE"));
+    bool on = resp.contains("ON", Qt::CaseInsensitive) || resp.contains("1");
+    m_pmStateCache[channel] = on;
+    return on;
+}
+
+// ==================== Sweep ====================
+
+bool GrattenGa1483Controller::setSweepStart(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("SWPSTART", freqHz)) return false;
+    QString cmd = buildSetCommand("SWPSTART", freqHz);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return querySweepStart(channel); },
+                            freqHz, 1.0);
+}
+
+bool GrattenGa1483Controller::setSweepStop(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("SWPSTOP", freqHz)) return false;
+    QString cmd = buildSetCommand("SWPSTOP", freqHz);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return querySweepStop(channel); },
+                            freqHz, 1.0);
+}
+
+bool GrattenGa1483Controller::setSweepDwellTime(int channel, double seconds)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("SWPDWELL", seconds)) return false;
+    QString cmd = buildSetCommand("SWPDWELL", seconds);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return querySweepStop(channel); },
+                            seconds, 0.001);
+}
+
+bool GrattenGa1483Controller::setSweepState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = buildSetCommand("SWPSTATE", enable ? 1.0 : 0.0);
+    bool ok = verifySetCommand(cmd,
+                               [this, channel]() { return querySweepState(channel); },
+                               enable);
+    if (ok) emit sweepStateChanged(channel, enable);
+    return ok;
+}
+
+double GrattenGa1483Controller::querySweepStart(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("SWPSTART"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_swpStartCache[channel] = val; return val; }
+    return 0.0;
+}
+
+double GrattenGa1483Controller::querySweepStop(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("SWPSTOP"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_swpStopCache[channel] = val; return val; }
+    return 0.0;
+}
+
+bool GrattenGa1483Controller::querySweepState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("SWPSTATE"));
+    bool on = resp.contains("ON", Qt::CaseInsensitive) || resp.contains("1");
+    m_swpStateCache[channel] = on;
+    return on;
+}
+
+// ==================== PULM ====================
+
+bool GrattenGa1483Controller::setPULMPeriod(int channel, double seconds)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("PULMPERIOD", seconds)) return false;
+    QString cmd = buildSetCommand("PULMPERIOD", seconds);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return queryPULMPeriod(channel); },
+                            seconds, 0.001);
+}
+
+bool GrattenGa1483Controller::setPULMWidth(int channel, double seconds)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("PULMWIDTH", seconds)) return false;
+    QString cmd = buildSetCommand("PULMWIDTH", seconds);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return queryPULMWidth(channel); },
+                            seconds, 0.001);
+}
+
+bool GrattenGa1483Controller::setPULMState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = buildSetCommand("PULMSTATE", enable ? 1.0 : 0.0);
+    bool ok = verifySetCommand(cmd,
+                               [this, channel]() { return queryPULMState(channel); },
+                               enable);
+    if (ok) emit pulmStateChanged(channel, enable);
+    return ok;
+}
+
+double GrattenGa1483Controller::queryPULMPeriod(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("PULMPERIOD"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_pulmPeriodCache[channel] = val; return val; }
+    return 0.0;
+}
+
+double GrattenGa1483Controller::queryPULMWidth(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("PULMWIDTH"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_pulmWidthCache[channel] = val; return val; }
+    return 0.0;
+}
+
+bool GrattenGa1483Controller::queryPULMState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("PULMSTATE"));
+    bool on = resp.contains("ON", Qt::CaseInsensitive) || resp.contains("1");
+    m_pulmStateCache[channel] = on;
+    return on;
+}
+
+// ==================== LF output ====================
+
+bool GrattenGa1483Controller::setLFFrequency(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("LFFREQ", freqHz)) return false;
+    QString cmd = buildSetCommand("LFFREQ", freqHz);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return queryLFFrequency(channel); },
+                            freqHz, 1.0);
+}
+
+bool GrattenGa1483Controller::setLFAmplitude(int channel, double volts)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("LFAMPL", volts)) return false;
+    QString cmd = buildSetCommand("LFAMPL", volts);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return queryLFAmplitude(channel); },
+                            volts, 0.01);
+}
+
+bool GrattenGa1483Controller::setLFState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = buildSetCommand("LFSTATE", enable ? 1.0 : 0.0);
+    bool ok = verifySetCommand(cmd,
+                               [this, channel]() { return queryLFState(channel); },
+                               enable);
+    if (ok) emit lfStateChanged(channel, enable);
+    return ok;
+}
+
+double GrattenGa1483Controller::queryLFFrequency(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("LFFREQ"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_lfFreqCache[channel] = val; return val; }
+    return 0.0;
+}
+
+double GrattenGa1483Controller::queryLFAmplitude(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("LFAMPL"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_lfAmplCache[channel] = val; return val; }
+    return 0.0;
+}
+
+bool GrattenGa1483Controller::queryLFState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("LFSTATE"));
+    bool on = resp.contains("ON", Qt::CaseInsensitive) || resp.contains("1");
+    m_lfStateCache[channel] = on;
+    return on;
+}
+
 // ==================== Низкоуровневые команды ====================
 
 bool GrattenGa1483Controller::sendCommand(const QString &cmd)
@@ -394,7 +677,20 @@ QStringList GrattenGa1483Controller::availableCommands() const
         ":AM:STATE", ":AM:STATE?",
         ":FM:STATe", ":FM:STATe?",
         ":FM:DEViation", ":FM:DEViation?",
-        ":FM:INTernal:FREQuency", ":FM:INTernal:FREQuency?"
+        ":FM:INTernal:FREQuency", ":FM:INTernal:FREQuency?",
+        ":PM:STATe", ":PM:STATe?",
+        ":PM:DEViation", ":PM:DEViation?",
+        ":PM:INTernal:FREQuency", ":PM:INTernal:FREQuency?",
+        ":SWEep:STATe", ":SWEep:STATe?",
+        ":SWEep:FREQuency:STARt", ":SWEep:FREQuency:STARt?",
+        ":SWEep:FREQuency:STOP", ":SWEep:FREQuency:STOP?",
+        ":SWEep:DWELl", ":SWEep:DWELl?",
+        ":PULM:STATe", ":PULM:STATe?",
+        ":PULM:INTernal:PERiod", ":PULM:INTernal:PERiod?",
+        ":PULM:INTernal:WIDTh", ":PULM:INTernal:WIDTh?",
+        ":LFOutput:STATe", ":LFOutput:STATe?",
+        ":LFOutput:FREQuency", ":LFOutput:FREQuency?",
+        ":LFOutput:AMPLitude", ":LFOutput:AMPLitude?"
     };
 }
 

@@ -254,7 +254,11 @@ QStringList AkipFacade::availableCommands() const
         "FUNC:CHB:RAMP:SYMM", "FUNC:CHB:RAMP:SYMM?",
         "FUNC:CHB:PULS:PER", "FUNC:CHB:PULS:PER?",
         "FUNC:CHB:PULS:WIDT", "FUNC:CHB:PULS:WIDT?",
-        "APPL:CHA:SIN", "APPL:CHB:SIN"
+        "APPL:CHA:SIN", "APPL:CHB:SIN",
+        "FM:INT:FREQ", "FM:INT:FREQ?", "FM:DEV", "FM:DEV?", "FM:STAT", "FM:STAT?",
+        "SWE:CHB:STAR", "SWE:CHB:STAR?", "SWE:CHB:STOP", "SWE:CHB:STOP?",
+        "SWE:CHB:TIME", "SWE:CHB:STAT", "SWE:CHB:STAT?",
+        "BURS:CHB:INT:PER", "BURS:CHB:INT:PER?", "BURS:CHB:STAT", "BURS:CHB:STAT?"
     };
 }
 
@@ -431,4 +435,247 @@ bool AkipFacade::queryFMState(int channel)
     if (!ensureAvailable()) return false;
     QString resp = m_usb.queryScpiCommand("FM:STAT?");
     return resp.contains("ON", Qt::CaseInsensitive) || resp.trimmed() == "1";
+}
+
+// ==================== PM модуляция (not supported on AKIP) ====================
+
+bool AkipFacade::setPMFrequency(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    Q_UNUSED(freqHz);
+    emit errorOccurred("PM modulation is not supported on AKIP device");
+    return false;
+}
+
+bool AkipFacade::setPMDeviation(int channel, double rad)
+{
+    Q_UNUSED(channel);
+    Q_UNUSED(rad);
+    emit errorOccurred("PM modulation is not supported on AKIP device");
+    return false;
+}
+
+bool AkipFacade::setPMState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    Q_UNUSED(enable);
+    emit errorOccurred("PM modulation is not supported on AKIP device");
+    return false;
+}
+
+double AkipFacade::queryPMFrequency(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    emit errorOccurred("PM modulation is not supported on AKIP device");
+    return 0.0;
+}
+
+double AkipFacade::queryPMDeviation(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    emit errorOccurred("PM modulation is not supported on AKIP device");
+    return 0.0;
+}
+
+bool AkipFacade::queryPMState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    emit errorOccurred("PM modulation is not supported on AKIP device");
+    return false;
+}
+
+// ==================== Sweep ====================
+
+bool AkipFacade::setSweepStart(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = QString("SWE:CHB:STAR %1").arg(freqHz, 0, 'e');
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit sweepStartChanged(channel, freqHz);
+        return true;
+    }
+    return false;
+}
+
+bool AkipFacade::setSweepStop(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = QString("SWE:CHB:STOP %1").arg(freqHz, 0, 'e');
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit sweepStopChanged(channel, freqHz);
+        return true;
+    }
+    return false;
+}
+
+bool AkipFacade::setSweepDwellTime(int channel, double seconds)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = QString("SWE:CHB:TIME %1").arg(seconds, 0, 'f');
+    if (m_usb.sendScpiCommand(cmd)) {
+        return true;
+    }
+    return false;
+}
+
+bool AkipFacade::setSweepState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = enable ? "SWE:CHB:STAT ON" : "SWE:CHB:STAT OFF";
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit sweepStateChanged(channel, enable);
+        return true;
+    }
+    return false;
+}
+
+double AkipFacade::querySweepStart(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_usb.queryScpiCommand("SWE:CHB:STAR?");
+    bool ok;
+    double val = resp.toDouble(&ok);
+    return ok ? val : 0.0;
+}
+
+double AkipFacade::querySweepStop(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_usb.queryScpiCommand("SWE:CHB:STOP?");
+    bool ok;
+    double val = resp.toDouble(&ok);
+    return ok ? val : 0.0;
+}
+
+bool AkipFacade::querySweepState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString resp = m_usb.queryScpiCommand("SWE:CHB:STAT?");
+    return resp.contains("ON", Qt::CaseInsensitive) || resp.trimmed() == "1";
+}
+
+// ==================== PULM (Pulse Modulation / Burst) ====================
+
+bool AkipFacade::setPULMPeriod(int channel, double seconds)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = QString("BURS:CHB:INT:PER %1").arg(seconds, 0, 'f');
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit pulmPeriodChanged(channel, seconds);
+        return true;
+    }
+    return false;
+}
+
+bool AkipFacade::setPULMWidth(int channel, double seconds)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = QString("FUNC:CHB:PULS:WIDT %1").arg(seconds, 0, 'e');
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit pulmWidthChanged(channel, seconds);
+        return true;
+    }
+    return false;
+}
+
+bool AkipFacade::setPULMState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = enable ? "BURS:CHB:STAT ON" : "BURS:CHB:STAT OFF";
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit pulmStateChanged(channel, enable);
+        return true;
+    }
+    return false;
+}
+
+double AkipFacade::queryPULMPeriod(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_usb.queryScpiCommand("BURS:CHB:INT:PER?");
+    bool ok;
+    double val = resp.toDouble(&ok);
+    return ok ? val : 0.0;
+}
+
+double AkipFacade::queryPULMWidth(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_usb.queryScpiCommand("FUNC:CHB:PULS:WIDT?");
+    bool ok;
+    double val = resp.toDouble(&ok);
+    return ok ? val : 0.0;
+}
+
+bool AkipFacade::queryPULMState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString resp = m_usb.queryScpiCommand("BURS:CHB:STAT?");
+    return resp.contains("ON", Qt::CaseInsensitive) || resp.trimmed() == "1";
+}
+
+// ==================== LF output (not supported on AKIP) ====================
+
+bool AkipFacade::setLFFrequency(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    Q_UNUSED(freqHz);
+    emit errorOccurred("LF output is not supported on AKIP device");
+    return false;
+}
+
+bool AkipFacade::setLFAmplitude(int channel, double volts)
+{
+    Q_UNUSED(channel);
+    Q_UNUSED(volts);
+    emit errorOccurred("LF output is not supported on AKIP device");
+    return false;
+}
+
+bool AkipFacade::setLFState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    Q_UNUSED(enable);
+    emit errorOccurred("LF output is not supported on AKIP device");
+    return false;
+}
+
+double AkipFacade::queryLFFrequency(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    emit errorOccurred("LF output is not supported on AKIP device");
+    return 0.0;
+}
+
+double AkipFacade::queryLFAmplitude(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    emit errorOccurred("LF output is not supported on AKIP device");
+    return 0.0;
+}
+
+bool AkipFacade::queryLFState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    emit errorOccurred("LF output is not supported on AKIP device");
+    return false;
 }
