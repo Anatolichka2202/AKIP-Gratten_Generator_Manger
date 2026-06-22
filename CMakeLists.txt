@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(AKIP-manager_module LANGUAGES CXX)
+set(APP_VERSION "0.2.0")
+project(AKIP-manager_module VERSION ${APP_VERSION} LANGUAGES CXX)
 
 # Устанавливаем политику для AUTOMOC
 if(POLICY CMP0071)
@@ -19,6 +20,7 @@ set(SOURCES
     main.cpp
     usbinterface.cpp
     usbinterface.h
+    version.h
 )
 
 add_executable(AKIP-manager_module ${SOURCES}
