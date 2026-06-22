@@ -88,10 +88,6 @@ public:
     // ==================== Список поддерживаемых команд ====================
     virtual QStringList availableCommands() const = 0;
 
-    // ==================== Методы с замером времени ====================
-    virtual bool sendCommandTimed(const QString &cmd, qint64 &elapsedMs) = 0;
-    virtual bool queryCommandTimed(const QString &cmd, QString &response, qint64 &elapsedMs) = 0;
-
 signals:
     void opened();
     void closed();
