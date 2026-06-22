@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "settingsmanager.h"
 #include "settingsdialog.h"
+#include "aboutdialog.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDateTime>
@@ -43,6 +44,15 @@ MainWindow::MainWindow(QWidget *parent)
     updateConnectionStatus();
     logMessage(tr("Программа запущена"));
 
+    // Setup Help menu with About dialog
+    QMenu *helpMenu = menuBar()->addMenu(tr("Справка"));
+    QAction *aboutAction = helpMenu->addAction(tr("О программе..."));
+    connect(aboutAction, &QAction::triggered, this, [this]() {
+        AboutDialog dlg(this);
+        dlg.exec();
+    });
+
+    // Запускаем автоопределение после короткой задержки
     QTimer::singleShot(100, this, &MainWindow::checkAvailableDevices);
 }
 
