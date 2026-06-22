@@ -17,9 +17,12 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core  Widgets Network)
 # Создаем исполняемый файл
 set(SOURCES
     main.cpp
-    usbinterface.cpp
-    usbinterface.h
 )
+
+# Add USB interface only on Windows (CH375 SDK is Windows-only)
+if(WIN32)
+    list(APPEND SOURCES usbinterface.cpp usbinterface.h)
+endif()
 
 add_executable(AKIP-manager_module ${SOURCES}
     mainwindow.h mainwindow.cpp mainwindow.ui
@@ -29,9 +32,7 @@ add_executable(AKIP-manager_module ${SOURCES}
     grattenga1483controller.h grattenga1483controller.cpp
     grattencontrolwidget.h grattencontrolwidget.cpp grattencontrolwidget.ui
     abstractscpicontroller.h abstractscpicontroller.cpp
-    gratten_limits.h
-    itransport.h
-    mocktransport.h mocktransport.cpp)
+    gratten_limits.h)
 
 # Включаем автоматический запуск MOC
 set_target_properties(AKIP-manager_module PROPERTIES
@@ -47,43 +48,50 @@ target_link_libraries(AKIP-manager_module PRIVATE
     Qt${QT_VERSION_MAJOR}::Network
 )
 
-# --- КОНФИГУРАЦИЯ ДЛЯ CH375DLL ---
-set(CH375_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ch375_sdk")
+# On Linux/macOS: compile a stub version of UsbInterface
+if(NOT WIN32)
+    target_compile_definitions(AKIP-manager_module PRIVATE NO_USB_INTERFACE)
+endif()
 
-# 1. Путь к заголовочным файлам
-target_include_directories(AKIP-manager_module PRIVATE
-    ${CH375_SDK_DIR}
-)
+# --- КОНФИГУРАЦИЯ ДЛЯ CH375DLL (Windows only) ---
+if(WIN32)
+    set(CH375_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ch375_sdk")
 
-# 2. Используем 64-битную версию (у вас MinGW 64-bit)
-message(STATUS "Using 64-bit CH375DLL library")
-set(CH375_LIB_FILE "${CH375_SDK_DIR}/CH375DLL64.lib")
-set(CH375_DLL_FILE "${CH375_SDK_DIR}/CH375DLL64.dll")
+    # 1. Путь к заголовочным файлам
+    target_include_directories(AKIP-manager_module PRIVATE
+        ${CH375_SDK_DIR}
+    )
 
-# 3. Подключаем библиотеку .lib
-target_link_libraries(AKIP-manager_module PRIVATE
-    ${CH375_LIB_FILE}
-)
+    # 2. Используем 64-битную версию (у вас MinGW 64-bit)
+    message(STATUS "Using 64-bit CH375DLL library")
+    set(CH375_LIB_FILE "${CH375_SDK_DIR}/CH375DLL64.lib")
+    set(CH375_DLL_FILE "${CH375_SDK_DIR}/CH375DLL64.dll")
 
-# 4. Копируем DLL в папку сборки
-add_custom_command(TARGET AKIP-manager_module POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CH375_DLL_FILE}"
-        $<TARGET_FILE_DIR:AKIP-manager_module>
-    COMMENT "Copying CH375DLL64.dll to output directory"
-)
+    # 3. Подключаем библиотеку .lib
+    target_link_libraries(AKIP-manager_module PRIVATE
+        ${CH375_LIB_FILE}
+    )
 
-# 5. Для MinGW добавляем библиотеки Windows
-target_link_libraries(AKIP-manager_module PRIVATE
-    -luser32
-    -lgdi32
-    -ladvapi32
-    -lshell32
-    -lole32
-    -loleaut32
-    -luuid
-    -lws2_32
-)
+    # 4. Копируем DLL в папку сборки
+    add_custom_command(TARGET AKIP-manager_module POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CH375_DLL_FILE}"
+            $<TARGET_FILE_DIR:AKIP-manager_module>
+        COMMENT "Copying CH375DLL64.dll to output directory"
+    )
+
+    # 5. Для MinGW добавляем библиотеки Windows
+    target_link_libraries(AKIP-manager_module PRIVATE
+        -luser32
+        -lgdi32
+        -ladvapi32
+        -lshell32
+        -lole32
+        -loleaut32
+        -luuid
+        -lws2_32
+    )
+endif()
 
 # Опционально: установка
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)

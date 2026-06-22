@@ -1,14 +1,17 @@
 #ifndef USBINTERFACE_H
 #define USBINTERFACE_H
 
+#include <QObject>
+#include <QByteArray>
+#include <QString>
+
+#ifndef NO_USB_INTERFACE
+
 // Отключаем макросы min/max из Windows.h (если они там есть)
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
 
-#include <QObject>
-#include <QByteArray>
-#include <QString>
 #include <windows.h>
 
 // Временно определяем min и max как функциональные макросы,
@@ -25,6 +28,8 @@
 // Удаляем временные макросы, чтобы они не мешали стандартным функциям.
 #undef min
 #undef max
+
+#endif // NO_USB_INTERFACE
 
 class UsbInterface : public QObject
 {
@@ -63,10 +68,11 @@ signals:
     void errorOccurred(const QString &error);
 
 private:
+#ifndef NO_USB_INTERFACE
     HANDLE m_deviceHandle;
-    bool m_isOpen;
     int m_writeTimeout;
     int m_readTimeout;
+    bool m_isOpen;
 
     // Вспомогательный метод для безопасного приведения HANDLE к ULONG
     ULONG handleToULong() const;
@@ -74,6 +80,9 @@ private:
     bool sendRawData(const QByteArray &data);
     QByteArray readRawData(int maxSize = 1024, int timeoutMs = 1000);
     QString waitForResponse(int timeoutMs);
+#else
+    bool m_isOpen = false;
+#endif
 };
 
 #endif // USBINTERFACE_H
