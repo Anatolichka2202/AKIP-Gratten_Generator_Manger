@@ -8,6 +8,7 @@
 #include "grattenga1483controller.h"
 #include "grattencontrolwidget.h"
 #include "settingsdialog.h"
+#include "channelwidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -27,26 +28,6 @@ private slots:
     void on_btnDisconnect_clicked();
     void on_btnIdn_clicked();
 
-    // Канал A
-    void on_btnSetFreqA_clicked();
-    void on_btnQueryFreqA_clicked();
-    void on_btnSetOutputA_clicked();
-    void on_btnQueryOutputA_clicked();
-    void on_btnSetAmplA_clicked();
-    void on_btnQueryAmplA_clicked();
-    void on_btnSetWaveA_clicked();
-    void on_btnQueryWaveA_clicked();
-
-    // Канал B
-    void on_btnSetFreqB_clicked();
-    void on_btnQueryFreqB_clicked();
-    void on_btnSetOutputB_clicked();
-    void on_btnQueryOutputB_clicked();
-    void on_btnSetAmplB_clicked();
-    void on_btnQueryAmplB_clicked();
-    void on_btnSetWaveB_clicked();
-    void on_btnQueryWaveB_clicked();
-
     // Тестирование задержек
     void on_btnTestIdn_clicked();
     void on_btnTestSetFreq_clicked();
@@ -57,17 +38,13 @@ private slots:
     void on_btnLogClear_clicked();
     void on_btnLogSave_clicked();
 
-    // Слоты от контроллера (новые)
+    // Слоты от контроллера
     void onControllerAvailabilityChanged(bool available);
     void onControllerError(const QString &error);
-    void onControllerFrequencyChanged(int channel, double freq);
-    void onControllerOutputChanged(int channel, bool enabled);
-    void onControllerAmplitudeChanged(int channel, double amplitude);
-    void onControllerWaveformChanged(int channel, const QString &waveform);
+    void onChannelWidgetLogMessage(const QString &msg);
 
 private:
     void logMessage(const QString &msg);
-    void updateLastOpTimeLabel(int channel, qint64 elapsedMs);
     void setChannelControlsEnabled(bool enabled);
     void updateConnectionStatus();
 
@@ -83,6 +60,8 @@ private:
 
     QWidget *m_akipPage;
     GrattenControlWidget *m_grattenPage;
+    ChannelWidget *m_channelA;
+    ChannelWidget *m_channelB;
     void setupForDeviceType(DeviceType type);
     void setupMenu();
 };

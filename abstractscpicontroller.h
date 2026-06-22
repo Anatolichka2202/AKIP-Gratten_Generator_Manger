@@ -38,6 +38,39 @@ public:
     virtual double queryFMDeviation(int channel) override = 0;
     virtual bool queryFMState(int channel) override = 0;
 
+    // ==================== PM модуляция ====================
+    virtual bool setPMFrequency(int channel, double freqHz) override = 0;
+    virtual bool setPMDeviation(int channel, double rad) override = 0;
+    virtual bool setPMState(int channel, bool enable) override = 0;
+    virtual double queryPMFrequency(int channel) override = 0;
+    virtual double queryPMDeviation(int channel) override = 0;
+    virtual bool queryPMState(int channel) override = 0;
+
+    // ==================== Sweep ====================
+    virtual bool setSweepStart(int channel, double freqHz) override = 0;
+    virtual bool setSweepStop(int channel, double freqHz) override = 0;
+    virtual bool setSweepDwellTime(int channel, double seconds) override = 0;
+    virtual bool setSweepState(int channel, bool enable) override = 0;
+    virtual double querySweepStart(int channel) override = 0;
+    virtual double querySweepStop(int channel) override = 0;
+    virtual bool querySweepState(int channel) override = 0;
+
+    // ==================== PULM ====================
+    virtual bool setPULMPeriod(int channel, double seconds) override = 0;
+    virtual bool setPULMWidth(int channel, double seconds) override = 0;
+    virtual bool setPULMState(int channel, bool enable) override = 0;
+    virtual double queryPULMPeriod(int channel) override = 0;
+    virtual double queryPULMWidth(int channel) override = 0;
+    virtual bool queryPULMState(int channel) override = 0;
+
+    // ==================== LF output ====================
+    virtual bool setLFFrequency(int channel, double freqHz) override = 0;
+    virtual bool setLFAmplitude(int channel, double volts) override = 0;
+    virtual bool setLFState(int channel, bool enable) override = 0;
+    virtual double queryLFFrequency(int channel) override = 0;
+    virtual double queryLFAmplitude(int channel) override = 0;
+    virtual bool queryLFState(int channel) override = 0;
+
     // ==================== Запросы текущих значений ====================
     virtual double queryFrequency(int channel) override = 0;
     virtual bool queryOutput(int channel) override = 0;
@@ -56,8 +89,8 @@ public:
     virtual QStringList availableCommands() const override = 0;
 
     // ==================== Методы с замером времени ====================
-    virtual bool sendCommandTimed(const QString &cmd, qint64 &elapsedMs) override final;
-    virtual bool queryCommandTimed(const QString &cmd, QString &response, qint64 &elapsedMs) override final;
+    bool sendCommandTimed(const QString &cmd, qint64 &elapsedMs);
+    bool queryCommandTimed(const QString &cmd, QString &response, qint64 &elapsedMs);
 
 protected:
     // Кэши для хранения текущих значений
@@ -72,6 +105,18 @@ protected:
     QMap<int, double> m_fmFreqCache;
     QMap<int, double> m_fmDevCache;
     QMap<int, bool>   m_fmStateCache;
+    QMap<int, double> m_pmFreqCache;
+    QMap<int, double> m_pmDevCache;
+    QMap<int, bool>   m_pmStateCache;
+    QMap<int, double> m_swpStartCache;
+    QMap<int, double> m_swpStopCache;
+    QMap<int, bool>   m_swpStateCache;
+    QMap<int, double> m_pulmPeriodCache;
+    QMap<int, double> m_pulmWidthCache;
+    QMap<int, bool>   m_pulmStateCache;
+    QMap<int, double> m_lfFreqCache;
+    QMap<int, double> m_lfAmplCache;
+    QMap<int, bool>   m_lfStateCache;
 
     // Проверка доступности устройства
     bool ensureAvailable() const;
