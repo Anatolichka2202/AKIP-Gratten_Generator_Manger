@@ -7,6 +7,7 @@
 #include "akipfacade.h"
 #include "grattenga1483controller.h"
 #include "grattencontrolwidget.h"
+#include "settingsdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -83,6 +84,7 @@ private:
     QWidget *m_akipPage;
     GrattenControlWidget *m_grattenPage;
     void setupForDeviceType(DeviceType type);
+    void setupMenu();
 };
 
 #endif // MAINWINDOW_H

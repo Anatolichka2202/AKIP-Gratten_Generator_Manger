@@ -347,13 +347,14 @@ bool AkipFacade::setAMState(int channel, bool enable)
 {
     Q_UNUSED(channel);
     if (!ensureAvailable()) return false;
-    // В документации нет явной команды включения AM. Возможно, включается автоматически.
-    // Отправим команду установки источника (например, INT) как способ активации.
-    // Или можно использовать AM:SOUR INT.
-    QString cmd = enable ? "AM:SOUR INT" : "AM:SOUR NONE"; // NONE может не работать.
-    // Лучше просто сохранять состояние в кэше и не отправлять.
-    emit amStateChanged(channel, enable);
-    return true; // заглушка
+    // TODO(BUG-006): уточнить команду по документации АКИП-3417.
+    // Предположительно: "AM:STAT ON"/"AM:STAT OFF" — проверить при наличии прибора.
+    QString cmd = enable ? "AM:STAT ON" : "AM:STAT OFF";
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit amStateChanged(channel, enable);
+        return true;
+    }
+    return false;
 }
 
 bool AkipFacade::queryAMState(int channel)
