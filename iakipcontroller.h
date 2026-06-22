@@ -75,9 +75,6 @@ signals:
     void fmDeviationChanged(int channel, double deviation);
     void fmStateChanged(int channel, bool enabled);
 
-    // ==================== Методы с замером времени ====================
-    virtual bool sendCommandTimed(const QString &cmd, qint64 &elapsedMs) = 0;
-    virtual bool queryCommandTimed(const QString &cmd, QString &response, qint64 &elapsedMs) = 0;
 };
 
 #endif // IAKIPCONTROLLER_H
