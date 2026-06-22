@@ -14,11 +14,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core  Widgets Network)
 
+# i18n support
+if(Qt6_FOUND)
+    find_package(Qt6 COMPONENTS LinguistTools REQUIRED)
+else()
+    find_package(Qt5 COMPONENTS LinguistTools REQUIRED)
+endif()
+
 # Создаем исполняемый файл
 set(SOURCES
     main.cpp
     usbinterface.cpp
     usbinterface.h
+)
+
+set(TS_FILES
+    ${CMAKE_SOURCE_DIR}/translations/ru_RU.ts
+    ${CMAKE_SOURCE_DIR}/translations/en_US.ts
 )
 
 add_executable(AKIP-manager_module ${SOURCES}
@@ -29,7 +41,11 @@ add_executable(AKIP-manager_module ${SOURCES}
     grattenga1483controller.h grattenga1483controller.cpp
     grattencontrolwidget.h grattencontrolwidget.cpp grattencontrolwidget.ui
     abstractscpicontroller.h abstractscpicontroller.cpp
-    gratten_limits.h)
+    gratten_limits.h
+    languageswitcher.h languageswitcher.cpp
+    settingsmanager.h settingsmanager.cpp
+    settingsdialog.h settingsdialog.cpp settingsdialog.ui
+)
 
 # Включаем автоматический запуск MOC
 set_target_properties(AKIP-manager_module PROPERTIES
@@ -37,6 +53,29 @@ set_target_properties(AKIP-manager_module PROPERTIES
     AUTORCC ON
     AUTOUIC ON
 )
+
+# i18n: Generate translations
+if(Qt6_FOUND)
+    qt6_add_translations(AKIP-manager_module TS_FILES ${TS_FILES})
+else()
+    # Qt5 style - manual lupdate/lrelease integration
+    find_program(LUPDATE_EXECUTABLE lupdate)
+    find_program(LRELEASE_EXECUTABLE lrelease)
+    if(LUPDATE_EXECUTABLE AND LRELEASE_EXECUTABLE)
+        foreach(TS_FILE ${TS_FILES})
+            get_filename_component(QM_FILE ${TS_FILE} NAME_WE)
+            set(QM_OUTPUT ${CMAKE_BINARY_DIR}/translations/${QM_FILE}.qm)
+            add_custom_command(
+                OUTPUT ${QM_OUTPUT}
+                COMMAND ${LRELEASE_EXECUTABLE} ${TS_FILE} -qm ${QM_OUTPUT}
+                DEPENDS ${TS_FILE}
+                COMMENT "Generating ${QM_FILE}.qm"
+            )
+            list(APPEND QM_FILES ${QM_OUTPUT})
+        endforeach()
+        add_custom_target(translations ALL DEPENDS ${QM_FILES})
+    endif()
+endif()
 
 # Подключаем библиотеки Qt
 target_link_libraries(AKIP-manager_module PRIVATE

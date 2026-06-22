@@ -1,29 +1,34 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "settingsmanager.h"
+#include "settingsdialog.h"
+#include "languageswitcher.h"
 #include <QFileDialog>
+#include <QMenuBar>
 #include <QMessageBox>
 #include <QDateTime>
 #include <QTextStream>
 #include <QTimer>
-
-const QString ipgratten = "192.168.1.66";
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_controller(nullptr)
     , m_currentType(Unknown)
+    , m_langSwitcher(nullptr)
 {
     ui->setupUi(this);
     m_akipPage = ui->stackedWidget->widget(0);
     m_grattenPage = nullptr;
 
-    // Инициализация состояния UI
+    m_langSwitcher = new LanguageSwitcher(qApp, this);
+
+    setupMenu();
+
     setChannelControlsEnabled(false);
     updateConnectionStatus();
-    logMessage("Программа запущена");
+    logMessage(tr("Программа запущена"));
 
-    // Запускаем автоопределение после короткой задержки
     QTimer::singleShot(100, this, &MainWindow::checkAvailableDevices);
 }
 
@@ -34,6 +39,23 @@ MainWindow::~MainWindow()
         delete m_controller;
     }
     delete ui;
+}
+
+// ==================== Меню ====================
+
+void MainWindow::setupMenu()
+{
+    QMenu *menuSettings = menuBar()->addMenu(tr("Настройки"));
+    QAction *actConnection = menuSettings->addAction(tr("Подключение..."));
+    connect(actConnection, &QAction::triggered, this, [this]() {
+        SettingsDialog dlg(this);
+        dlg.exec();
+    });
+
+    if (m_langSwitcher) {
+        menuSettings->addSeparator();
+        menuSettings->addMenu(m_langSwitcher->createLanguageMenu(this));
+    }
 }
 
 // ==================== Логирование и вспомогательные методы ====================
@@ -273,7 +295,7 @@ void MainWindow::on_btnSetFreqB_clicked()
 void MainWindow::on_btnQueryFreqB_clicked()
 {
     if (m_currentType == GRATTEN) {
-        logMessage("Канал B не поддерживается для Gratten");
+        logMessage(tr("Канал B не поддерживается для Gratten"));
         return;
     }
     if (!m_controller || !m_controller->isAvailable()) return;
@@ -281,7 +303,7 @@ void MainWindow::on_btnQueryFreqB_clicked()
     double freq = m_controller->queryFrequency(2);
     qint64 elapsed = m_timer.elapsed();
     if (freq > 0) {
-        ui->editFreqA->setText(QString::number(freq));
+        ui->editFreqB->setText(QString::number(freq)); // BUG-002 fix
         updateLastOpTimeLabel(2, elapsed);
         logMessage(QString("Канал B: запрос частоты, ответ: %1 Гц, время: %2 мс").arg(freq).arg(elapsed));
     } else {
@@ -292,11 +314,11 @@ void MainWindow::on_btnQueryFreqB_clicked()
 void MainWindow::on_btnSetOutputB_clicked()
 {
     if (m_currentType == GRATTEN) {
-        logMessage("Канал B не поддерживается для Gratten");
+        logMessage(tr("Канал B не поддерживается для Gratten"));
         return;
     }
     if (!m_controller || !m_controller->isAvailable()) return;
-    bool enable = ui->chkOutputA->isChecked();
+    bool enable = ui->chkOutputB->isChecked(); // BUG-001 fix
     m_timer.start();
     bool ok = m_controller->setOutput(2, enable);
     qint64 elapsed = m_timer.elapsed();
@@ -311,14 +333,14 @@ void MainWindow::on_btnSetOutputB_clicked()
 void MainWindow::on_btnQueryOutputB_clicked()
 {
     if (m_currentType == GRATTEN) {
-        logMessage("Канал B не поддерживается для Gratten");
+        logMessage(tr("Канал B не поддерживается для Gratten"));
         return;
     }
     if (!m_controller || !m_controller->isAvailable()) return;
     m_timer.start();
     bool on = m_controller->queryOutput(2);
     qint64 elapsed = m_timer.elapsed();
-    ui->chkOutputA->setChecked(on);
+    ui->chkOutputB->setChecked(on); // BUG-007 fix
     updateLastOpTimeLabel(2, elapsed);
     logMessage(QString("Канал B: запрос выхода, ответ: %1, время: %2 мс").arg(on ? "ON" : "OFF").arg(elapsed));
 }
@@ -327,16 +349,16 @@ void MainWindow::on_btnQueryOutputB_clicked()
 void MainWindow::on_btnSetAmplB_clicked()
 {
     if (m_currentType == GRATTEN) {
-        logMessage("Канал B не поддерживается для Gratten");
+        logMessage(tr("Канал B не поддерживается для Gratten"));
         return;
     }
     if (!m_controller || !m_controller->isAvailable()) return;
-    double ampl = ui->editAmplA->text().toDouble();
+    double ampl = ui->editAmplB->text().toDouble(); // BUG-003 fix
     if (ampl <= 0) {
-        logMessage("Некорректная амплитуда для канала B");
+        logMessage(tr("Некорректная амплитуда для канала B"));
         return;
     }
-    QString unit = ui->cmbAmplUnitA->currentText();
+    QString unit = ui->cmbAmplUnitB->currentText(); // BUG-003 fix
     m_timer.start();
     bool ok = m_controller->setAmplitude(2, ampl, unit);
     qint64 elapsed = m_timer.elapsed();
@@ -351,7 +373,7 @@ void MainWindow::on_btnSetAmplB_clicked()
 void MainWindow::on_btnQueryAmplB_clicked()
 {
     if (m_currentType == GRATTEN) {
-        logMessage("Канал B не поддерживается для Gratten");
+        logMessage(tr("Канал B не поддерживается для Gratten"));
         return;
     }
     if (!m_controller || !m_controller->isAvailable()) return;
@@ -359,7 +381,7 @@ void MainWindow::on_btnQueryAmplB_clicked()
     double ampl = m_controller->queryAmplitude(2);
     qint64 elapsed = m_timer.elapsed();
     if (ampl > 0) {
-        ui->editAmplA->setText(QString::number(ampl));
+        ui->editAmplB->setText(QString::number(ampl)); // BUG-003 fix
         updateLastOpTimeLabel(2, elapsed);
         logMessage(QString("Канал B: запрос амплитуды, ответ: %1, время: %2 мс").arg(ampl).arg(elapsed));
     } else {
@@ -370,11 +392,11 @@ void MainWindow::on_btnQueryAmplB_clicked()
 void MainWindow::on_btnSetWaveB_clicked()
 {
     if (m_currentType == GRATTEN) {
-        logMessage("Канал B не поддерживается для Gratten");
+        logMessage(tr("Канал B не поддерживается для Gratten"));
         return;
     }
     if (!m_controller || !m_controller->isAvailable()) return;
-    QString wave = ui->cmbWaveformA->currentText();
+    QString wave = ui->cmbWaveformB->currentText(); // BUG-004 fix
     m_timer.start();
     bool ok = m_controller->setWaveform(2, wave);
     qint64 elapsed = m_timer.elapsed();
@@ -578,10 +600,11 @@ void MainWindow::checkAvailableDevices()
         }
     }
 
-    // --- Проверка Граттен (LAN, IP по умолчанию) ---
+    // --- Проверка Граттен (LAN, IP из настроек) ---
     {
+        auto &cfg = SettingsManager::instance();
         GrattenGa1483Controller testGratten;
-        testGratten.setConnectionParameters(ipgratten, 5025);
+        testGratten.setConnectionParameters(cfg.grattenHost(), cfg.grattenPort());
         if (testGratten.openDevice()) {
             grattenIdn = testGratten.getIdentity();
             grattenOk = !grattenIdn.isEmpty();
@@ -646,11 +669,13 @@ void MainWindow::switchToDevice(DeviceType type)
     case AKIP:
         m_controller = new AkipFacade(this);
         break;
-    case GRATTEN:
+    case GRATTEN: {
+        auto &cfg = SettingsManager::instance();
         m_controller = new GrattenGa1483Controller(this);
-        // Устанавливаем параметры подключения
-        static_cast<GrattenGa1483Controller*>(m_controller)->setConnectionParameters(ipgratten, 5025);
+        static_cast<GrattenGa1483Controller*>(m_controller)
+            ->setConnectionParameters(cfg.grattenHost(), cfg.grattenPort()); // BUG-005 fix
         break;
+    }
     default:
         return;
     }
