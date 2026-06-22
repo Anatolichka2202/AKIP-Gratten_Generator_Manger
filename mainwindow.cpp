@@ -2,18 +2,21 @@
 #include "ui_mainwindow.h"
 #include "settingsmanager.h"
 #include "settingsdialog.h"
+#include "aboutdialog.h"
 #include <QFileDialog>
-#include <QMenuBar>
 #include <QMessageBox>
 #include <QDateTime>
 #include <QTextStream>
 #include <QTimer>
+#include <QMenuBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_controller(nullptr)
     , m_currentType(Unknown)
+    , m_channelA(nullptr)
+    , m_channelB(nullptr)
 {
     ui->setupUi(this);
     m_akipPage = ui->stackedWidget->widget(0);
@@ -21,10 +24,35 @@ MainWindow::MainWindow(QWidget *parent)
 
     setupMenu();
 
+    // Create channel widgets for AKIP page
+    m_channelA = new ChannelWidget(1, nullptr, this);
+    m_channelB = new ChannelWidget(2, nullptr, this);
+
+    // Add to AKIP page layout
+    ui->horizontalLayout_2->insertWidget(0, m_channelA);
+    ui->horizontalLayout_2->insertWidget(1, m_channelB);
+
+    // Remove the old group boxes from UI
+    ui->grpChannelA->hide();
+    ui->grpChannelB->hide();
+
+    // Connect channel widgets' log signals to main window
+    connect(m_channelA, &ChannelWidget::logMessage, this, &MainWindow::onChannelWidgetLogMessage);
+    connect(m_channelB, &ChannelWidget::logMessage, this, &MainWindow::onChannelWidgetLogMessage);
+
     setChannelControlsEnabled(false);
     updateConnectionStatus();
     logMessage(tr("Программа запущена"));
 
+    // Setup Help menu with About dialog
+    QMenu *helpMenu = menuBar()->addMenu(tr("Справка"));
+    QAction *aboutAction = helpMenu->addAction(tr("О программе..."));
+    connect(aboutAction, &QAction::triggered, this, [this]() {
+        AboutDialog dlg(this);
+        dlg.exec();
+    });
+
+    // Запускаем автоопределение после короткой задержки
     QTimer::singleShot(100, this, &MainWindow::checkAvailableDevices);
 }
 
@@ -57,19 +85,10 @@ void MainWindow::logMessage(const QString &msg)
     ui->txtLog->append(QString("[%1] %2").arg(timestamp).arg(msg));
 }
 
-void MainWindow::updateLastOpTimeLabel(int channel, qint64 elapsedMs)
-{
-    QString text = tr("Время последней операции: %1 мс").arg(elapsedMs);
-    if (channel == 1)
-        ui->lblLastOpTimeA->setText(text);
-    else if (channel == 2)
-        ui->lblLastOpTimeB->setText(text);
-}
-
 void MainWindow::setChannelControlsEnabled(bool enabled)
 {
-    ui->grpChannelA->setEnabled(enabled);
-    ui->grpChannelB->setEnabled(enabled);
+    m_channelA->setEnabled(enabled);
+    m_channelB->setEnabled(enabled);
     ui->grpDelays->setEnabled(enabled);
 }
 
@@ -96,7 +115,6 @@ void MainWindow::on_btnConnect_clicked()
         return;
     }
 
-    // Если автоопределение не сработало, предлагаем выбор вручную
     QMessageBox::StandardButton reply = QMessageBox::question(this, tr("Выбор устройства"),
                                                               tr("Подключиться к АКИП-3417 (USB)?\n"
                                                                  "(Нажмите No для подключения к Gratten GA1483 по LAN)"),
@@ -130,294 +148,9 @@ void MainWindow::on_btnIdn_clicked()
     QString idn = m_controller->getIdentity();
     qint64 elapsed = m_timer.elapsed();
     ui->lblIdn->setText(idn);
-    logMessage(QString("*IDN? запрошен, время ответа: %1 мс, ответ: %2").arg(elapsed).arg(idn));
+    logMessage(QString(tr("*IDN? запрошен, время ответа: %1 мс, ответ: %2")).arg(elapsed).arg(idn));
 }
 
-// ==================== Канал A ====================
-
-void MainWindow::on_btnSetFreqA_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    double freq = ui->editFreqA->text().toDouble();
-    if (freq <= 0) {
-        logMessage(tr("Некорректная частота для канала A"));
-        return;
-    }
-    m_timer.start();
-    bool ok = m_controller->setFrequency(1, freq);
-    qint64 elapsed = m_timer.elapsed();
-    if (ok) {
-        updateLastOpTimeLabel(1, elapsed);
-        logMessage(tr("Канал A: частота установлена в %1 Гц за %2 мс").arg(freq).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка установки частоты канала A"));
-    }
-}
-
-void MainWindow::on_btnQueryFreqA_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
-    double freq = m_controller->queryFrequency(1);
-    qint64 elapsed = m_timer.elapsed();
-    if (freq > 0) {
-        ui->editFreqA->setText(QString::number(freq));
-        updateLastOpTimeLabel(1, elapsed);
-        logMessage(tr("Канал A: запрос частоты, ответ: %1 Гц, время: %2 мс").arg(freq).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка запроса частоты канала A"));
-    }
-}
-
-void MainWindow::on_btnSetOutputA_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    bool enable = ui->chkOutputA->isChecked();
-    m_timer.start();
-    bool ok = m_controller->setOutput(1, enable);
-    qint64 elapsed = m_timer.elapsed();
-    if (ok) {
-        updateLastOpTimeLabel(1, elapsed);
-        logMessage(tr("Канал A: выход %1 за %2 мс").arg(enable ? "ON" : "OFF").arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка установки выхода канала A"));
-    }
-}
-
-void MainWindow::on_btnQueryOutputA_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
-    bool on = m_controller->queryOutput(1);
-    qint64 elapsed = m_timer.elapsed();
-    ui->chkOutputA->setChecked(on);
-    updateLastOpTimeLabel(1, elapsed);
-    logMessage(tr("Канал A: запрос выхода, ответ: %1, время: %2 мс").arg(on ? "ON" : "OFF").arg(elapsed));
-}
-
-void MainWindow::on_btnSetAmplA_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    double ampl = ui->editAmplA->text().toDouble();
-    if (ampl <= 0) {
-        logMessage(tr("Некорректная амплитуда для канала A"));
-        return;
-    }
-    QString unit = ui->cmbAmplUnitA->currentText();
-    m_timer.start();
-    bool ok = m_controller->setAmplitude(1, ampl, unit);
-    qint64 elapsed = m_timer.elapsed();
-    if (ok) {
-        updateLastOpTimeLabel(1, elapsed);
-        logMessage(tr("Канал A: амплитуда установлена в %1 %2 за %3 мс").arg(ampl).arg(unit).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка установки амплитуды канала A"));
-    }
-}
-
-void MainWindow::on_btnQueryAmplA_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
-    double ampl = m_controller->queryAmplitude(1);
-    qint64 elapsed = m_timer.elapsed();
-    if (ampl > 0) {
-        ui->editAmplA->setText(QString::number(ampl));
-        updateLastOpTimeLabel(1, elapsed);
-        logMessage(tr("Канал A: запрос амплитуды, ответ: %1, время: %2 мс").arg(ampl).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка запроса амплитуды канала A"));
-    }
-}
-
-void MainWindow::on_btnSetWaveA_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    QString wave = ui->cmbWaveformA->currentText();
-    m_timer.start();
-    bool ok = m_controller->setWaveform(1, wave);
-    qint64 elapsed = m_timer.elapsed();
-    if (ok) {
-        updateLastOpTimeLabel(1, elapsed);
-        logMessage(tr("Канал A: форма сигнала %1 установлена за %2 мс").arg(wave).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка установки формы сигнала канала A"));
-    }
-}
-
-void MainWindow::on_btnQueryWaveA_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
-    QString wave = m_controller->queryWaveform(1);
-    qint64 elapsed = m_timer.elapsed();
-    if (!wave.isEmpty()) {
-        int idx = ui->cmbWaveformA->findText(wave, Qt::MatchFixedString);
-        if (idx >= 0) ui->cmbWaveformA->setCurrentIndex(idx);
-        updateLastOpTimeLabel(1, elapsed);
-        logMessage(tr("Канал A: запрос формы сигнала, ответ: %1, время: %2 мс").arg(wave).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка запроса формы сигнала канала A"));
-    }
-}
-
-// ==================== Канал B (аналогично) ====================
-
-void MainWindow::on_btnSetFreqB_clicked()
-{
-    if (m_currentType == GRATTEN) {
-        logMessage(tr("Канал B не поддерживается для Gratten"));
-        return;
-    }
-    if (!m_controller || !m_controller->isAvailable()) return;
-    double freq = ui->editFreqB->text().toDouble();
-    if (freq <= 0) return;
-    m_timer.start();
-    bool ok = m_controller->setFrequency(2, freq);
-    qint64 elapsed = m_timer.elapsed();
-    if (ok) {
-        updateLastOpTimeLabel(2, elapsed);
-        logMessage(tr("Канал B: частота установлена в %1 Гц за %2 мс").arg(freq).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка установки частоты канала B"));
-    }
-}
-
-void MainWindow::on_btnQueryFreqB_clicked()
-{
-    if (m_currentType == GRATTEN) {
-        logMessage(tr("Канал B не поддерживается для Gratten"));
-        return;
-    }
-    if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
-    double freq = m_controller->queryFrequency(2);
-    qint64 elapsed = m_timer.elapsed();
-    if (freq > 0) {
-        ui->editFreqB->setText(QString::number(freq)); // BUG-002 fix
-        updateLastOpTimeLabel(2, elapsed);
-        logMessage(tr("Канал B: запрос частоты, ответ: %1 Гц, время: %2 мс").arg(freq).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка запроса частоты канала B"));
-    }
-}
-
-void MainWindow::on_btnSetOutputB_clicked()
-{
-    if (m_currentType == GRATTEN) {
-        logMessage(tr("Канал B не поддерживается для Gratten"));
-        return;
-    }
-    if (!m_controller || !m_controller->isAvailable()) return;
-    bool enable = ui->chkOutputB->isChecked(); // BUG-001 fix
-    m_timer.start();
-    bool ok = m_controller->setOutput(2, enable);
-    qint64 elapsed = m_timer.elapsed();
-    if (ok) {
-        updateLastOpTimeLabel(2, elapsed);
-        logMessage(tr("Канал B: выход %1 за %2 мс").arg(enable ? "ON" : "OFF").arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка установки выхода канала B"));
-    }
-}
-
-void MainWindow::on_btnQueryOutputB_clicked()
-{
-    if (m_currentType == GRATTEN) {
-        logMessage(tr("Канал B не поддерживается для Gratten"));
-        return;
-    }
-    if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
-    bool on = m_controller->queryOutput(2);
-    qint64 elapsed = m_timer.elapsed();
-    ui->chkOutputB->setChecked(on); // BUG-007 fix
-    updateLastOpTimeLabel(2, elapsed);
-    logMessage(tr("Канал B: запрос выхода, ответ: %1, время: %2 мс").arg(on ? "ON" : "OFF").arg(elapsed));
-}
-
-
-void MainWindow::on_btnSetAmplB_clicked()
-{
-    if (m_currentType == GRATTEN) {
-        logMessage(tr("Канал B не поддерживается для Gratten"));
-        return;
-    }
-    if (!m_controller || !m_controller->isAvailable()) return;
-    double ampl = ui->editAmplB->text().toDouble(); // BUG-003 fix
-    if (ampl <= 0) {
-        logMessage(tr("Некорректная амплитуда для канала B"));
-        return;
-    }
-    QString unit = ui->cmbAmplUnitB->currentText(); // BUG-003 fix
-    m_timer.start();
-    bool ok = m_controller->setAmplitude(2, ampl, unit);
-    qint64 elapsed = m_timer.elapsed();
-    if (ok) {
-        updateLastOpTimeLabel(2, elapsed);
-        logMessage(tr("Канал B: амплитуда установлена в %1 %2 за %3 мс").arg(ampl).arg(unit).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка установки амплитуды канала B"));
-    }
-}
-
-void MainWindow::on_btnQueryAmplB_clicked()
-{
-    if (m_currentType == GRATTEN) {
-        logMessage(tr("Канал B не поддерживается для Gratten"));
-        return;
-    }
-    if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
-    double ampl = m_controller->queryAmplitude(2);
-    qint64 elapsed = m_timer.elapsed();
-    if (ampl > 0) {
-        ui->editAmplB->setText(QString::number(ampl)); // BUG-003 fix
-        updateLastOpTimeLabel(2, elapsed);
-        logMessage(tr("Канал B: запрос амплитуды, ответ: %1, время: %2 мс").arg(ampl).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка запроса амплитуды канала B"));
-    }
-}
-
-void MainWindow::on_btnSetWaveB_clicked()
-{
-    if (m_currentType == GRATTEN) {
-        logMessage(tr("Канал B не поддерживается для Gratten"));
-        return;
-    }
-    if (!m_controller || !m_controller->isAvailable()) return;
-    QString wave = ui->cmbWaveformB->currentText(); // BUG-004 fix
-    m_timer.start();
-    bool ok = m_controller->setWaveform(2, wave);
-    qint64 elapsed = m_timer.elapsed();
-    if (ok) {
-        updateLastOpTimeLabel(2, elapsed);
-        logMessage(tr("Канал B: форма сигнала %1 установлена за %2 мс").arg(wave).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка установки формы сигнала канала B"));
-    }
-}
-
-void MainWindow::on_btnQueryWaveB_clicked()
-{
-    if (m_currentType == GRATTEN) {
-        logMessage(tr("Канал B не поддерживается для Gratten"));
-        return;
-    }
-    if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
-    QString wave = m_controller->queryWaveform(2);
-    qint64 elapsed = m_timer.elapsed();
-    if (!wave.isEmpty()) {
-        int idx = ui->cmbWaveformA->findText(wave, Qt::MatchFixedString);
-        if (idx >= 0) ui->cmbWaveformA->setCurrentIndex(idx);
-        updateLastOpTimeLabel(2, elapsed);
-        logMessage(tr("Канал B: запрос формы сигнала, ответ: %1, время: %2 мс").arg(wave).arg(elapsed));
-    } else {
-        logMessage(tr("Ошибка запроса формы сигнала канала B"));
-    }
-}
 // ==================== Тестирование задержек ====================
 
 void MainWindow::on_btnTestIdn_clicked()
@@ -427,7 +160,7 @@ void MainWindow::on_btnTestIdn_clicked()
     QString idn = m_controller->getIdentity();
     qint64 elapsed = m_timer.elapsed();
     ui->lblTestIdnTime->setText(QString::number(elapsed));
-    logMessage(tr("[ТЕСТ] *IDN? время ответа: %1 мс, ответ: %2").arg(elapsed).arg(idn));
+    logMessage(QString(tr("[ТЕСТ] *IDN? время ответа: %1 мс, ответ: %2")).arg(elapsed).arg(idn));
 }
 
 void MainWindow::on_btnTestSetFreq_clicked()
@@ -444,7 +177,7 @@ void MainWindow::on_btnTestSetFreq_clicked()
     qint64 elapsed = m_timer.elapsed();
     if (ok) {
         ui->lblTestSetFreqTime->setText(QString::number(elapsed));
-        logMessage(tr("[ТЕСТ] Установка частоты канал %1 за %2 мс").arg(channel).arg(elapsed));
+        logMessage(QString(tr("[ТЕСТ] Установка частоты канал %1 за %2 мс")).arg(channel).arg(elapsed));
     } else {
         logMessage(tr("[ТЕСТ] Ошибка отправки команды"));
     }
@@ -459,7 +192,7 @@ void MainWindow::on_btnTestQueryFreq_clicked()
     qint64 elapsed = m_timer.elapsed();
     if (freq > 0) {
         ui->lblTestQueryFreqTime->setText(QString::number(elapsed));
-        logMessage(tr("[ТЕСТ] Запрос частоты канал %1: время ответа %2 мс, значение %3 Гц")
+        logMessage(QString(tr("[ТЕСТ] Запрос частоты канал %1: время ответа %2 мс, значение %3 Гц"))
                        .arg(channel).arg(elapsed).arg(freq));
     } else {
         logMessage(tr("[ТЕСТ] Ошибка запроса"));
@@ -471,7 +204,7 @@ void MainWindow::on_btnTestSeriesIdn_clicked()
     if (!m_controller || !m_controller->isAvailable()) return;
     const int count = 10;
     QList<qint64> times;
-    logMessage(tr("[ТЕСТ] Серия %1 запросов *IDN? ...").arg(count));
+    logMessage(QString(tr("[ТЕСТ] Серия %1 запросов *IDN? ...")).arg(count));
     for (int i = 0; i < count; ++i) {
         m_timer.start();
         QString idn = m_controller->getIdentity();
@@ -479,7 +212,7 @@ void MainWindow::on_btnTestSeriesIdn_clicked()
         if (!idn.isEmpty()) {
             times.append(elapsed);
         } else {
-            logMessage(tr("[ТЕСТ] Ошибка в запросе #%1").arg(i+1));
+            logMessage(QString(tr("[ТЕСТ] Ошибка в запросе #%1")).arg(i+1));
         }
     }
     if (times.isEmpty()) {
@@ -493,7 +226,7 @@ void MainWindow::on_btnTestSeriesIdn_clicked()
         if (t > max) max = t;
     }
     double avg = double(sum) / times.size();
-    logMessage(tr("[ТЕСТ] Статистика *IDN? (%1 запросов): мин=%2 мс, макс=%3 мс, сред= %4 мс")
+    logMessage(QString(tr("[ТЕСТ] Статистика *IDN? (%1 запросов): мин=%2 мс, макс=%3 мс, сред=%4 мс"))
                    .arg(times.size()).arg(min).arg(max).arg(avg, 0, 'f', 2));
 }
 
@@ -513,7 +246,7 @@ void MainWindow::on_btnLogSave_clicked()
         QTextStream out(&file);
         out << ui->txtLog->toPlainText();
         file.close();
-        logMessage(tr("Лог сохранён в %1").arg(fileName));
+        logMessage(QString(tr("Лог сохранён в %1")).arg(fileName));
     } else {
         logMessage(tr("Ошибка сохранения лога"));
     }
@@ -524,7 +257,7 @@ void MainWindow::on_btnLogSave_clicked()
 void MainWindow::onControllerAvailabilityChanged(bool available)
 {
     updateConnectionStatus();
-    logMessage(tr("Доступность устройства изменилась: %1").arg(available ? tr("доступно") : tr("недоступно")));
+    logMessage(QString(tr("Доступность устройства изменилась: %1")).arg(available ? tr("доступно") : tr("недоступно")));
 }
 
 void MainWindow::onControllerError(const QString &error)
@@ -532,43 +265,9 @@ void MainWindow::onControllerError(const QString &error)
     logMessage(tr("ОШИБКА: ") + error);
 }
 
-void MainWindow::onControllerFrequencyChanged(int channel, double freq)
+void MainWindow::onChannelWidgetLogMessage(const QString &msg)
 {
-    if (channel == 1)
-        ui->editFreqA->setText(QString::number(freq));
-    else if (channel == 2)
-        ui->editFreqB->setText(QString::number(freq));
-    logMessage(tr("Сигнал: частота канала %1 изменена на %2 Гц").arg(channel).arg(freq));
-}
-
-void MainWindow::onControllerOutputChanged(int channel, bool enabled)
-{
-    if (channel == 1)
-        ui->chkOutputA->setChecked(enabled);
-    else if (channel == 2)
-        ui->chkOutputB->setChecked(enabled);
-    logMessage(tr("Сигнал: выход канала %1 изменён на %2").arg(channel).arg(enabled ? "ON" : "OFF"));
-}
-
-void MainWindow::onControllerAmplitudeChanged(int channel, double amplitude)
-{
-    if (channel == 1)
-        ui->editAmplA->setText(QString::number(amplitude));
-    else if (channel == 2)
-        ui->editAmplB->setText(QString::number(amplitude));
-    logMessage(tr("Сигнал: амплитуда канала %1 изменена на %2").arg(channel).arg(amplitude));
-}
-
-void MainWindow::onControllerWaveformChanged(int channel, const QString &waveform)
-{
-    if (channel == 1) {
-        int idx = ui->cmbWaveformA->findText(waveform, Qt::MatchFixedString);
-        if (idx >= 0) ui->cmbWaveformA->setCurrentIndex(idx);
-    } else if (channel == 2) {
-        int idx = ui->cmbWaveformB->findText(waveform, Qt::MatchFixedString);
-        if (idx >= 0) ui->cmbWaveformB->setCurrentIndex(idx);
-    }
-    logMessage(tr("Сигнал: форма сигнала канала %1 изменена на %2").arg(channel).arg(waveform));
+    logMessage(msg);
 }
 
 // ==================== Автоопределение и выбор устройства ====================
@@ -664,7 +363,7 @@ void MainWindow::switchToDevice(DeviceType type)
         auto &cfg = SettingsManager::instance();
         m_controller = new GrattenGa1483Controller(this);
         static_cast<GrattenGa1483Controller*>(m_controller)
-            ->setConnectionParameters(cfg.grattenHost(), cfg.grattenPort()); // BUG-005 fix
+            ->setConnectionParameters(cfg.grattenHost(), cfg.grattenPort());
         break;
     }
     default:
@@ -676,25 +375,17 @@ void MainWindow::switchToDevice(DeviceType type)
             this, &MainWindow::onControllerAvailabilityChanged);
     connect(m_controller, &IAkipController::errorOccurred,
             this, &MainWindow::onControllerError);
-    connect(m_controller, &IAkipController::frequencyChanged,
-            this, &MainWindow::onControllerFrequencyChanged);
-    connect(m_controller, &IAkipController::outputChanged,
-            this, &MainWindow::onControllerOutputChanged);
-    connect(m_controller, &IAkipController::amplitudeChanged,
-            this, &MainWindow::onControllerAmplitudeChanged);
-    connect(m_controller, &IAkipController::waveformChanged,
-            this, &MainWindow::onControllerWaveformChanged);
 
     // Пытаемся открыть
     if (m_controller->openDevice()) {
         m_currentType = type;
         QString idn = m_controller->getIdentity();
         ui->lblIdn->setText(idn);
-        logMessage(tr("Подключено устройство: %1").arg(idn));
+        logMessage(QString(tr("Подключено устройство: %1")).arg(idn));
 
         setupForDeviceType(type);
 
-        ui->lblDeviceType->setText(type == AKIP ? tr("АКИП-3417") : tr("Gratten GA1483"));
+        ui->lblDeviceType->setText(type == AKIP ? "АКИП-3417" : "Gratten GA1483");
     } else {
         logMessage(tr("Ошибка открытия выбранного устройства"));
         delete m_controller;
@@ -715,17 +406,15 @@ void MainWindow::setupForDeviceType(DeviceType type)
 
     if (type == AKIP) {
         ui->stackedWidget->setCurrentWidget(m_akipPage);
+        m_channelA->setController(m_controller);
+        m_channelB->setController(m_controller);
         setChannelControlsEnabled(true);
-        ui->grpChannelA->setEnabled(true);
-        ui->grpChannelB->setEnabled(true);
     } else if (type == GRATTEN) {
         m_grattenPage = new GrattenControlWidget(m_controller, this);
         int idx = ui->stackedWidget->addWidget(m_grattenPage);
         ui->stackedWidget->setCurrentIndex(idx);
 
-        setChannelControlsEnabled(true);   // включает группу задержек
-        ui->grpChannelA->setEnabled(false);
-        ui->grpChannelB->setEnabled(false);
+        setChannelControlsEnabled(true);
     } else { // Unknown
         setChannelControlsEnabled(false);
     }
