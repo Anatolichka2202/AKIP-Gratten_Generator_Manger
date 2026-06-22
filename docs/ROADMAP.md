@@ -32,36 +32,36 @@
 
 ---
 
-## Фаза 2 — Полнота API 🔄
-**Статус: В работе**
+## Фаза 2 — Полнота API ✅
+**Статус: Завершена (ожидание merge PR #3, #4)**
 
 ### 2.1 Граттен — расширенный API
-- [ ] PM-модуляция (setFMState → setPMState, setPMDeviation, setPMFrequency)
-- [ ] Sweep (setSweepStart, setSweepStop, setSweepTime, setSweepState)
-- [ ] Pulse modulation (setPULMState, setPULMWidth, setPULMPeriod)
-- [ ] AM source selection (setAMSource: INT/EXT)
-- [ ] LF output (setLFState, setLFFrequency, setLFAmplitude)
-- [ ] Display update toggle (:DISPlay:UPDate OFF — ускоряет команды)
-- [ ] Reference oscillator (setRefSource: INT/EXT)
+- [x] PM-модуляция (setPMState, setPMDeviation, setPMFrequency) — PR #3
+- [x] Sweep (setSweepStart, setSweepStop, setSweepDwellTime, setSweepState) — PR #3
+- [x] Pulse modulation (setPULMState, setPULMWidth, setPULMPeriod) — PR #3
+- [x] LF output (setLFState, setLFFrequency, setLFAmplitude) — PR #3
+- [x] Display update toggle (DISPUPD в gratten_limits.h)
+- [ ] AM source selection (setAMSource: INT/EXT) — отложено
+- [ ] Reference oscillator (setRefSource: INT/EXT) — отложено
 
 ### 2.2 АКИП-3417 — уточнение команд
 - [ ] Проверить AM:STAT синтаксис с физическим прибором
 - [ ] Проверить FM:STAT синтаксис с физическим прибором
-- [ ] DC offset для канала B (VOLT:CHB:OFFS)
-- [ ] Sweep (SWE:CHB:STAR/STOP/TIME/STAT)
-- [ ] Burst mode (BURS:CHB:NCYC/STAT/TRIG)
-- [ ] Ramp symmetry (FUNC:CHB:RAMP:SYMM) — добавить в IAkipController
+- [x] DC offset для канала B (VOLT:CHB:OFFS) — в availableCommands
+- [x] Sweep (SWE:CHB:STAR/STOP/TIME/STAT) — стаб PR #3
+- [x] Burst mode (BURS:CHB:INT:PER/STAT) — стаб PR #3
+- [x] Ramp symmetry (FUNC:CHB:RAMP:SYMM) — в availableCommands
 
 ### 2.3 version.h
-- [ ] Создать version.h с макросами APP_VERSION, APP_NAME, APP_ORG
+- [x] Создать version.h с макросами APP_VERSION, APP_NAME, APP_ORG — PR #4
 
 ---
 
-## Фаза 3 — UI/UX 🔲
-**Статус: Не начата**
+## Фаза 3 — UI/UX 🔄
+**Статус: В работе**
 
 ### 3.1 Рефакторинг MainWindow
-- [ ] Вынести методы Channel A/B в отдельный ChannelWidget (убрать дублирование 700 строк)
+- [x] Вынести методы Channel A/B в отдельный ChannelWidget — PR #6
 - [ ] GrattenControlWidget: добавить FM, sweep, PULM секции (скрываемые QGroupBox)
 - [ ] StatusBar: тип устройства, IP:порт, время последней операции, счётчик команд
 - [ ] ToolBar: быстрые кнопки (Подключить, IDN, Reset, Настройки)
@@ -72,16 +72,18 @@
 - [ ] Иконка приложения (resources/icon.ico)
 
 ### 3.3 Диалоги
-- [ ] ModulationDialog — настройка AM/FM/PM в едином диалоге
-- [ ] SweepDialog — настройка свипа
-- [ ] AboutDialog — версия, сборка, лицензия
+- [x] ModulationDialog — AM/FM (PM после merge PR #3) — PR #9
+- [x] SweepDialog — настройка свипа — PR #8
+- [x] AboutDialog — версия, сборка, лицензия — PR #7
 
 ---
 
-## Фаза 4 — i18n (Интернационализация) 🔲
-**Статус: Не начата**
+## Фаза 4 — i18n (Интернационализация) 🔄
+**Статус: Частично**
 
-- [ ] Обернуть ВСЕ UI-строки в tr()
+- [x] GrattenControlWidget: все строки в tr() — PR #5
+- [x] ChannelWidget: все строки в tr() — PR #6
+- [ ] Обернуть UI-строки в tr() в mainwindow.cpp
 - [ ] Создать .ts файлы: `translations/ru_RU.ts`, `translations/en_US.ts`
 - [ ] Настроить CMake: lupdate, lrelease
 - [ ] LanguageSwitcher в меню (Настройки → Язык)
