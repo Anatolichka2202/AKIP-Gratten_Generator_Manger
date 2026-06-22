@@ -9,8 +9,7 @@ ChannelWidget::ChannelWidget(int channelNumber, IAkipController *controller, QWi
 {
     ui->setupUi(this);
 
-    // Set group box title with channel number
-    ui->groupBox->setTitle(tr("Канал %1").arg(QChar('A' + channelNumber - 1)));
+    setTitle(tr("Канал %1").arg(QChar('A' + channelNumber - 1)));
 
     // Connect button signals
     connect(ui->btnSetFreq, &QPushButton::clicked, this, &ChannelWidget::onSetFreqClicked);
