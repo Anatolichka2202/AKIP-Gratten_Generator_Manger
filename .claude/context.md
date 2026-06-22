@@ -34,6 +34,20 @@ IAkipController (интерфейс, QObject)
 5. `mainwindow.cpp:9` — IP-адрес Gratten захардкожен: `"192.168.1.66"`
 6. `akipfacade.cpp:353` — `setAMState` — заглушка, команда не отправляется
 
+## Устройства — детали (из ресерча)
+
+### АКИП-3417 OEM: Suin Instruments (Shijiazhuang), серия TFG
+- Синтаксис команд: проприетарный (FREQ:CHA, VOLT:CHB — не стандарт)
+- Канал A: PLL-генератор (только SIN/SQUARE, до 500 МГц)
+- Канал B: DDS-генератор (SIN/SQU/RAMP/PULSE/NOISE/DC, до 10 МГц)
+- Документация: Suin TFG2900A manual (ManualsLib), TFG3600 user guide
+- Нереализовано: FM, sweep, burst, DC offset (CHB), AM source, AM:STAT (синтаксис под вопросом)
+
+### Gratten GA1483 OEM: Atten Technology
+- Протокол: стандартный SCPI (как RIGOL DSG800 / Siglent SSG3000X)
+- Эталонная документация: RIGOL DSG800 Programming Guide (публичный PDF)
+- Нереализовано: FM, PM, sweep, pulse modulation, LF output, ref oscillator, AM source
+
 ## Задачи для standalone-продукта
 - [ ] Убрать все хардкоды (IP, порт) → QSettings
 - [ ] Добавить i18n (Qt Linguist, ru/en)
