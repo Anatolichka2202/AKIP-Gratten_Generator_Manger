@@ -70,6 +70,7 @@ public:
     virtual double queryLFFrequency(int channel) override = 0;
     virtual double queryLFAmplitude(int channel) override = 0;
     virtual bool queryLFState(int channel) override = 0;
+
     // ==================== Запросы текущих значений ====================
     virtual double queryFrequency(int channel) override = 0;
     virtual bool queryOutput(int channel) override = 0;
@@ -88,8 +89,8 @@ public:
     virtual QStringList availableCommands() const override = 0;
 
     // ==================== Методы с замером времени ====================
-    virtual bool sendCommandTimed(const QString &cmd, qint64 &elapsedMs) override final;
-    virtual bool queryCommandTimed(const QString &cmd, QString &response, qint64 &elapsedMs) override final;
+    bool sendCommandTimed(const QString &cmd, qint64 &elapsedMs);
+    bool queryCommandTimed(const QString &cmd, QString &response, qint64 &elapsedMs);
 
 protected:
     // Кэши для хранения текущих значений

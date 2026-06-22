@@ -106,10 +106,7 @@ signals:
     void amDepthChanged(int channel, double percent);                    // NEW
     void amStateChanged(int channel, bool enabled);                      // NEW
 
-<<<<<<< HEAD
     // FM signals
-=======
-    // FM сигналы
     void fmFrequencyChanged(int channel, double freq);
     void fmDeviationChanged(int channel, double deviation);
     void fmStateChanged(int channel, bool enabled);
