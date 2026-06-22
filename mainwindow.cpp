@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "settingsmanager.h"
 #include "settingsdialog.h"
+#include "languageswitcher.h"
 #include "aboutdialog.h"
 #include <QFileDialog>
 #include <QMessageBox>
@@ -17,10 +18,13 @@ MainWindow::MainWindow(QWidget *parent)
     , m_currentType(Unknown)
     , m_channelA(nullptr)
     , m_channelB(nullptr)
+    , m_langSwitcher(nullptr)
 {
     ui->setupUi(this);
     m_akipPage = ui->stackedWidget->widget(0);
     m_grattenPage = nullptr;
+
+    m_langSwitcher = new LanguageSwitcher(qApp, this);
 
     setupMenu();
 
@@ -75,6 +79,11 @@ void MainWindow::setupMenu()
         SettingsDialog dlg(this);
         dlg.exec();
     });
+
+    if (m_langSwitcher) {
+        menuSettings->addSeparator();
+        menuSettings->addMenu(m_langSwitcher->createLanguageMenu(this));
+    }
 }
 
 // ==================== Логирование и вспомогательные методы ====================

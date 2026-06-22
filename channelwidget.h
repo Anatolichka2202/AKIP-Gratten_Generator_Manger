@@ -1,7 +1,7 @@
 #ifndef CHANNELWIDGET_H
 #define CHANNELWIDGET_H
 
-#include <QWidget>
+#include <QGroupBox>
 #include <QElapsedTimer>
 #include "iakipcontroller.h"
 
@@ -9,7 +9,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class ChannelWidget; }
 QT_END_NAMESPACE
 
-class ChannelWidget : public QWidget
+class ChannelWidget : public QGroupBox
 {
     Q_OBJECT
 public:
