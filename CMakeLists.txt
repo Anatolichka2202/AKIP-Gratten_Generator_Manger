@@ -40,7 +40,9 @@ add_executable(AKIP-manager_module ${SOURCES}
     modulationdialog.h modulationdialog.cpp modulationdialog.ui
     aboutdialog.h aboutdialog.cpp aboutdialog.ui
     settingsmanager.h settingsmanager.cpp
-    settingsdialog.h settingsdialog.cpp settingsdialog.ui)
+    settingsdialog.h settingsdialog.cpp settingsdialog.ui
+    itransport.h
+    mocktransport.h mocktransport.cpp)
 
 # Включаем автоматический запуск MOC
 set_target_properties(AKIP-manager_module PROPERTIES
