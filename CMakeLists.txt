@@ -34,6 +34,7 @@ add_executable(AKIP-manager_module ${SOURCES}
     abstractscpicontroller.h abstractscpicontroller.cpp
     gratten_limits.h
     sweepdialog.h sweepdialog.cpp sweepdialog.ui
+    aboutdialog.h aboutdialog.cpp aboutdialog.ui
     settingsmanager.h settingsmanager.cpp
     settingsdialog.h settingsdialog.cpp settingsdialog.ui)
 
