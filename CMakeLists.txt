@@ -32,7 +32,9 @@ add_executable(AKIP-manager_module ${SOURCES}
     grattencontrolwidget.h grattencontrolwidget.cpp grattencontrolwidget.ui
     abstractscpicontroller.h abstractscpicontroller.cpp
     gratten_limits.h
-    sweepdialog.h sweepdialog.cpp sweepdialog.ui)
+    sweepdialog.h sweepdialog.cpp sweepdialog.ui
+    itransport.h
+    mocktransport.h mocktransport.cpp)
 
 # Включаем автоматический запуск MOC
 set_target_properties(AKIP-manager_module PROPERTIES
@@ -94,3 +96,7 @@ endif()
 install(TARGETS AKIP-manager_module
     RUNTIME DESTINATION bin
 )
+
+# Enable testing
+enable_testing()
+add_subdirectory(tests)
