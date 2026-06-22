@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ChannelWidget</class>
+ <widget class="QGroupBox" name="ChannelWidget">
+  <property name="title">
+   <string>Канал %1</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="labelFreq">
+     <property name="text">
+      <string>Частота (Гц):</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="editFreq"/>
+   </item>
+   <item row="0" column="2">
+    <widget class="QPushButton" name="btnSetFreq">
+     <property name="text">
+      <string>Установить</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QPushButton" name="btnQueryFreq">
+     <property name="text">
+      <string>Запросить</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="labelAmpl">
+     <property name="text">
+      <string>Амплитуда:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="editAmpl"/>
+   </item>
+   <item row="1" column="2">
+    <widget class="QComboBox" name="cmbAmplUnit">
+     <item>
+      <property name="text">
+       <string>VPP</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>VRMS</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>DBM</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QPushButton" name="btnSetAmpl">
+     <property name="text">
+      <string>Установить</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="4">
+    <widget class="QPushButton" name="btnQueryAmpl">
+     <property name="text">
+      <string>Запросить</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="labelWave">
+     <property name="text">
+      <string>Форма:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" colspan="2">
+    <widget class="QComboBox" name="cmbWaveform">
+     <item>
+      <property name="text">
+       <string>Sine</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Square</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Ramp</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Pulse</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Noise</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>DC</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <widget class="QPushButton" name="btnSetWave">
+     <property name="text">
+      <string>Установить</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="4">
+    <widget class="QPushButton" name="btnQueryWave">
+     <property name="text">
+      <string>Запросить</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QCheckBox" name="chkOutput">
+     <property name="text">
+      <string>Выход вкл.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QPushButton" name="btnSetOutput">
+     <property name="text">
+      <string>Установить</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QPushButton" name="btnQueryOutput">
+     <property name="text">
+      <string>Запросить</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="5">
+    <widget class="QLabel" name="lblLastOpTime">
+     <property name="text">
+      <string>Время операции: —</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

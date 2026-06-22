@@ -40,6 +40,38 @@ public:
     double queryFMDeviation(int channel) override;
     bool queryFMState(int channel) override;
 
+    // ==================== PM модуляция ====================
+    bool setPMFrequency(int channel, double freqHz) override;
+    bool setPMDeviation(int channel, double rad) override;
+    bool setPMState(int channel, bool enable) override;
+    double queryPMFrequency(int channel) override;
+    double queryPMDeviation(int channel) override;
+    bool queryPMState(int channel) override;
+
+    // ==================== Sweep ====================
+    bool setSweepStart(int channel, double freqHz) override;
+    bool setSweepStop(int channel, double freqHz) override;
+    bool setSweepDwellTime(int channel, double seconds) override;
+    bool setSweepState(int channel, bool enable) override;
+    double querySweepStart(int channel) override;
+    double querySweepStop(int channel) override;
+    bool querySweepState(int channel) override;
+
+    // ==================== PULM ====================
+    bool setPULMPeriod(int channel, double seconds) override;
+    bool setPULMWidth(int channel, double seconds) override;
+    bool setPULMState(int channel, bool enable) override;
+    double queryPULMPeriod(int channel) override;
+    double queryPULMWidth(int channel) override;
+    bool queryPULMState(int channel) override;
+
+    // ==================== LF output ====================
+    bool setLFFrequency(int channel, double freqHz) override;
+    bool setLFAmplitude(int channel, double volts) override;
+    bool setLFState(int channel, bool enable) override;
+    double queryLFFrequency(int channel) override;
+    double queryLFAmplitude(int channel) override;
+    bool queryLFState(int channel) override;
     // ==================== Запросы текущих значений ====================
     double queryFrequency(int channel) override;
     bool queryOutput(int channel) override;
