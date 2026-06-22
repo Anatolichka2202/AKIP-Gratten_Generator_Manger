@@ -28,10 +28,8 @@ set(SOURCES
     version.h
 )
 
-# Add USB interface only on Windows (CH375 SDK is Windows-only)
-if(WIN32)
-    list(APPEND SOURCES usbinterface.cpp usbinterface.h)
-endif()
+# usbinterface.cpp always compiled: has #ifdef NO_USB_INTERFACE stubs for non-Windows
+list(APPEND SOURCES usbinterface.cpp usbinterface.h)
 
 set(TS_FILES
     ${CMAKE_SOURCE_DIR}/translations/ru_RU.ts
