@@ -8,6 +8,7 @@
 #include "grattenga1483controller.h"
 #include "grattencontrolwidget.h"
 #include "settingsdialog.h"
+#include "modulationdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

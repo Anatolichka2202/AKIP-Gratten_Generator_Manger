@@ -8,6 +8,8 @@
 #include <QDateTime>
 #include <QTextStream>
 #include <QTimer>
+#include <QMenu>
+#include <QMenuBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -729,4 +731,20 @@ void MainWindow::setupForDeviceType(DeviceType type)
     } else { // Unknown
         setChannelControlsEnabled(false);
     }
+}
+
+// ==================== Меню ====================
+
+void MainWindow::setupMenu()
+{
+    QMenu *menuDevice = menuBar()->addMenu(tr("Устройство"));
+    QAction *modulationAction = menuDevice->addAction(tr("Модуляция..."));
+    connect(modulationAction, &QAction::triggered, this, [this]() {
+        if (!m_controller || !m_controller->isAvailable()) {
+            QMessageBox::warning(this, tr("Нет подключения"), tr("Устройство не подключено."));
+            return;
+        }
+        ModulationDialog dlg(m_controller, 1, this);
+        dlg.exec();
+    });
 }

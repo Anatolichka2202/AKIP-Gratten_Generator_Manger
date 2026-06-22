@@ -32,7 +32,8 @@ add_executable(AKIP-manager_module ${SOURCES}
     grattencontrolwidget.h grattencontrolwidget.cpp grattencontrolwidget.ui
     abstractscpicontroller.h abstractscpicontroller.cpp
     gratten_limits.h
-    sweepdialog.h sweepdialog.cpp sweepdialog.ui)
+    sweepdialog.h sweepdialog.cpp sweepdialog.ui
+    modulationdialog.h modulationdialog.cpp modulationdialog.ui)
 
 # Включаем автоматический запуск MOC
 set_target_properties(AKIP-manager_module PROPERTIES
