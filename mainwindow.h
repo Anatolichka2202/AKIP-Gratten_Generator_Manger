@@ -8,10 +8,13 @@
 #include "grattenga1483controller.h"
 #include "grattencontrolwidget.h"
 #include "settingsdialog.h"
+#include "languageswitcher.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
+class LanguageSwitcher;
 
 class MainWindow : public QMainWindow
 {
@@ -83,6 +86,7 @@ private:
 
     QWidget *m_akipPage;
     GrattenControlWidget *m_grattenPage;
+    LanguageSwitcher *m_langSwitcher;
     void setupForDeviceType(DeviceType type);
     void setupMenu();
 };
