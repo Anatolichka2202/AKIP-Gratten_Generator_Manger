@@ -10,12 +10,20 @@
 - [ ] Найти документацию АКИП-3417
 - [ ] Найти документацию Gratten GA1483
 
-## Фаза 1 — Исправление ядра
-- [ ] Исправить 6 известных багов (см. context.md)
-- [ ] Убрать хардкод IP → SettingsManager
-- [ ] Добавить `SettingsDialog` (IP, порт, таймауты)
-- [ ] Реализовать `setAMState` в AkipFacade (сейчас заглушка)
+## Фаза 1 — Исправление ядра [В РАБОТЕ]
+- [x] BUG-001: on_btnSetOutputB reads chkOutputA → chkOutputB
+- [x] BUG-002: on_btnQueryFreqB writes to editFreqA → editFreqB
+- [x] BUG-003: on_btnSetAmplB reads editAmplA/cmbAmplUnitA → B-поля
+- [x] BUG-004: on_btnSetWaveB reads cmbWaveformA → cmbWaveformB
+- [x] BUG-005: IP Gratten захардкожен → SettingsManager
+- [x] BUG-006: setAMState — улучшена заглушка (команда AM:STAT, TODO для проверки с железом)
+- [x] BUG-007: on_btnQueryOutputB writes to chkOutputA → chkOutputB
+- [x] Создан SettingsManager (QSettings wrapper)
+- [x] Создан SettingsDialog (IP, порт, таймауты Gratten)
+- [x] Добавлено меню "Настройки → Подключение..."
+- [x] Переименован проект в CMakeLists.txt
 - [ ] version.h с макросами версии
+- [ ] Дождаться результатов ресерча по командам (agent: ace6d7e32b7597fe5)
 
 ## Фаза 2 — Standalone
 - [ ] Переименовать project в CMakeLists.txt

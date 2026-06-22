@@ -30,6 +30,14 @@ public:
     virtual QString getIdentity() override = 0;
     virtual bool reset() override = 0;
 
+    // ==================== FM модуляция ====================
+    virtual bool setFMFrequency(int channel, double freqHz) override = 0;
+    virtual bool setFMDeviation(int channel, double freqHz) override = 0;
+    virtual bool setFMState(int channel, bool enable) override = 0;
+    virtual double queryFMFrequency(int channel) override = 0;
+    virtual double queryFMDeviation(int channel) override = 0;
+    virtual bool queryFMState(int channel) override = 0;
+
     // ==================== Запросы текущих значений ====================
     virtual double queryFrequency(int channel) override = 0;
     virtual bool queryOutput(int channel) override = 0;
@@ -61,6 +69,9 @@ protected:
     QMap<int, double> m_amDepthCache;
     QMap<int, bool> m_amStateCache;
     QMap<int, double> m_dutyCycleCache;
+    QMap<int, double> m_fmFreqCache;
+    QMap<int, double> m_fmDevCache;
+    QMap<int, bool>   m_fmStateCache;
 
     // Проверка доступности устройства
     bool ensureAvailable() const;

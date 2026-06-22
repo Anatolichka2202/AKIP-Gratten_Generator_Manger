@@ -299,6 +299,74 @@ bool GrattenGa1483Controller::queryAMState(int channel)
     return resp.contains("ON", Qt::CaseInsensitive) || resp.contains("1");
 }
 
+// ==================== FM модуляция ====================
+
+bool GrattenGa1483Controller::setFMFrequency(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("FMFREQ", freqHz)) return false;
+    QString cmd = buildSetCommand("FMFREQ", freqHz);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return queryFMFrequency(channel); },
+                            freqHz, 1.0);
+}
+
+bool GrattenGa1483Controller::setFMDeviation(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    if (!checkRange("FMDEV", freqHz)) return false;
+    QString cmd = buildSetCommand("FMDEV", freqHz);
+    return verifySetCommand(cmd,
+                            [this, channel]() { return queryFMDeviation(channel); },
+                            freqHz, 1.0);
+}
+
+bool GrattenGa1483Controller::setFMState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = buildSetCommand("FMSTATE", enable ? 1.0 : 0.0);
+    bool ok = verifySetCommand(cmd,
+                               [this, channel]() { return queryFMState(channel); },
+                               enable);
+    if (ok) emit fmStateChanged(channel, enable);
+    return ok;
+}
+
+double GrattenGa1483Controller::queryFMFrequency(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("FMFREQ"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_fmFreqCache[channel] = val; return val; }
+    return 0.0;
+}
+
+double GrattenGa1483Controller::queryFMDeviation(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("FMDEV"));
+    bool ok;
+    double val = resp.toDouble(&ok);
+    if (ok) { m_fmDevCache[channel] = val; return val; }
+    return 0.0;
+}
+
+bool GrattenGa1483Controller::queryFMState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString resp = m_lan.queryScpiCommand(buildQueryCommand("FMSTATE"));
+    bool on = resp.contains("ON", Qt::CaseInsensitive) || resp.contains("1");
+    m_fmStateCache[channel] = on;
+    return on;
+}
+
 // ==================== Низкоуровневые команды ====================
 
 bool GrattenGa1483Controller::sendCommand(const QString &cmd)
@@ -323,7 +391,10 @@ QStringList GrattenGa1483Controller::availableCommands() const
         ":FUNCtion:SHAPe", ":FUNCtion:SHAPe?",
         ":AM:INTernal:FREQuency", ":AM:INTernal:FREQuency?",
         ":AM:DEPTh", ":AM:DEPTh?",
-        ":AM:STATE", ":AM:STATE?"
+        ":AM:STATE", ":AM:STATE?",
+        ":FM:STATe", ":FM:STATe?",
+        ":FM:DEViation", ":FM:DEViation?",
+        ":FM:INTernal:FREQuency", ":FM:INTernal:FREQuency?"
     };
 }
 
