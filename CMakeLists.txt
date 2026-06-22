@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(AKIP-manager_module LANGUAGES CXX)
+set(APP_VERSION "0.2.0")
+project(AKIP-manager_module VERSION ${APP_VERSION} LANGUAGES CXX)
 
 # Устанавливаем политику для AUTOMOC
 if(POLICY CMP0071)
@@ -17,6 +18,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core  Widgets Network)
 # Создаем исполняемый файл
 set(SOURCES
     main.cpp
+    version.h
 )
 
 # Add USB interface only on Windows (CH375 SDK is Windows-only)
@@ -26,13 +28,18 @@ endif()
 
 add_executable(AKIP-manager_module ${SOURCES}
     mainwindow.h mainwindow.cpp mainwindow.ui
+    channelwidget.h channelwidget.cpp channelwidget.ui
     akipfacade.h akipfacade.cpp
     iakipcontroller.h
     laninterface.h laninterface.cpp
     grattenga1483controller.h grattenga1483controller.cpp
     grattencontrolwidget.h grattencontrolwidget.cpp grattencontrolwidget.ui
     abstractscpicontroller.h abstractscpicontroller.cpp
-    gratten_limits.h)
+    gratten_limits.h
+    sweepdialog.h sweepdialog.cpp sweepdialog.ui
+    aboutdialog.h aboutdialog.cpp aboutdialog.ui
+    settingsmanager.h settingsmanager.cpp
+    settingsdialog.h settingsdialog.cpp settingsdialog.ui)
 
 # Включаем автоматический запуск MOC
 set_target_properties(AKIP-manager_module PROPERTIES

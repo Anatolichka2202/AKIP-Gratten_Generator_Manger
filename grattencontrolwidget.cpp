@@ -1,5 +1,6 @@
 #include "grattencontrolwidget.h"
 #include "ui_grattencontrolwidget.h"
+#include "sweepdialog.h"
 #include <QDateTime>
 #include <QDebug>
 
@@ -12,7 +13,7 @@ GrattenControlWidget::GrattenControlWidget(IAkipController *controller, QWidget 
 
     // Настройка комбобокса единиц амплитуды (только dBm)
     ui->cmbAmplUnit->clear();
-    ui->cmbAmplUnit->addItem("dBm");
+    ui->cmbAmplUnit->addItem(tr("dBm"));
 
     // Подключение кнопок управления
     connect(ui->btnSetFreq, &QPushButton::clicked, this, &GrattenControlWidget::onSetFreqClicked);
@@ -23,6 +24,7 @@ GrattenControlWidget::GrattenControlWidget(IAkipController *controller, QWidget 
     connect(ui->btnQueryOutput, &QPushButton::clicked, this, &GrattenControlWidget::onQueryOutputClicked);
     connect(ui->btnSend, &QPushButton::clicked, this, &GrattenControlWidget::onSendCommandClicked);
     connect(ui->cmdLineEdit, &QLineEdit::returnPressed, this, &GrattenControlWidget::onSendCommandClicked);
+    connect(ui->btnSweep, &QPushButton::clicked, this, &GrattenControlWidget::onSweepClicked);
 
     // Подключение сигналов контроллера
     connect(m_controller, &IAkipController::frequencyChanged, this, &GrattenControlWidget::onFrequencyChanged);
@@ -37,7 +39,7 @@ GrattenControlWidget::GrattenControlWidget(IAkipController *controller, QWidget 
     ui->terminalEdit->setFont(font);
     ui->cmdLineEdit->setFont(font);
 
-    appendToTerminal("Терминал готов. Введите SCPI команду.");
+    appendToTerminal(tr("Терминал готов. Введите SCPI команду."));
 }
 
 GrattenControlWidget::~GrattenControlWidget()
@@ -76,17 +78,17 @@ void GrattenControlWidget::onSendCommandClicked()
         QString response = m_controller->queryCommand(cmd);
         qint64 elapsed = m_timer.elapsed();
         if (!response.isEmpty()) {
-            appendToTerminal(QString("Ответ (%1 мс): %2").arg(elapsed).arg(response));
+            appendToTerminal(QString(tr("Ответ (%1 мс): %2")).arg(elapsed).arg(response));
         } else {
-            appendToTerminal("Ошибка: пустой ответ или таймаут", false, true);
+            appendToTerminal(tr("Ошибка: пустой ответ или таймаут"), false, true);
         }
     } else {
         bool ok = m_controller->sendCommand(cmd);
         qint64 elapsed = m_timer.elapsed();
         if (ok) {
-            appendToTerminal(QString("Команда отправлена (%1 мс)").arg(elapsed));
+            appendToTerminal(QString(tr("Команда отправлена (%1 мс)")).arg(elapsed));
         } else {
-            appendToTerminal("Ошибка отправки команды", false, true);
+            appendToTerminal(tr("Ошибка отправки команды"), false, true);
         }
     }
 }
@@ -96,7 +98,7 @@ void GrattenControlWidget::onSetFreqClicked()
     bool ok;
     double freq = ui->editFreq->text().toDouble(&ok);
     if (!ok || freq <= 0) {
-        appendToTerminal("Некорректная частота", false, true);
+        appendToTerminal(tr("Некорректная частота"), false, true);
         return;
     }
     m_timer.start();
@@ -104,9 +106,9 @@ void GrattenControlWidget::onSetFreqClicked()
     qint64 elapsed = m_timer.elapsed();
     if (result) {
         updateLastOpTime(elapsed);
-        appendToTerminal(QString("Частота установлена в %1 Гц за %2 мс").arg(freq).arg(elapsed));
+        appendToTerminal(QString(tr("Частота установлена в %1 Гц за %2 мс")).arg(freq).arg(elapsed));
     } else {
-        appendToTerminal("Ошибка установки частоты", false, true);
+        appendToTerminal(tr("Ошибка установки частоты"), false, true);
     }
 }
 
@@ -118,9 +120,9 @@ void GrattenControlWidget::onQueryFreqClicked()
     if (freq > 0) {
         ui->editFreq->setText(QString::number(freq));
         updateLastOpTime(elapsed);
-        appendToTerminal(QString("Частота = %1 Гц (время %2 мс)").arg(freq).arg(elapsed));
+        appendToTerminal(QString(tr("Частота = %1 Гц (время %2 мс)")).arg(freq).arg(elapsed));
     } else {
-        appendToTerminal("Ошибка запроса частоты", false, true);
+        appendToTerminal(tr("Ошибка запроса частоты"), false, true);
     }
 }
 
@@ -129,7 +131,7 @@ void GrattenControlWidget::onSetAmplClicked()
     bool ok;
     double ampl = ui->editAmpl->text().toDouble(&ok);
     if (!ok) {
-        appendToTerminal("Некорректная амплитуда (не число)", false, true);
+        appendToTerminal(tr("Некорректная амплитуда (не число)"), false, true);
         return;
     }
     QString unit = ui->cmbAmplUnit->currentText(); // всегда dBm
@@ -138,9 +140,9 @@ void GrattenControlWidget::onSetAmplClicked()
     qint64 elapsed = m_timer.elapsed();
     if (result) {
         updateLastOpTime(elapsed);
-        appendToTerminal(QString("Амплитуда установлена в %1 %2 за %3 мс").arg(ampl).arg(unit).arg(elapsed));
+        appendToTerminal(QString(tr("Амплитуда установлена в %1 %2 за %3 мс")).arg(ampl).arg(unit).arg(elapsed));
     } else {
-        appendToTerminal("Ошибка установки амплитуды", false, true);
+        appendToTerminal(tr("Ошибка установки амплитуды"), false, true);
     }
 }
 
@@ -152,9 +154,9 @@ void GrattenControlWidget::onQueryAmplClicked()
     if (ampl > -999) { // допустимый диапазон включает отрицательные значения
         ui->editAmpl->setText(QString::number(ampl));
         updateLastOpTime(elapsed);
-        appendToTerminal(QString("Амплитуда = %1 dBm (время %2 мс)").arg(ampl).arg(elapsed));
+        appendToTerminal(QString(tr("Амплитуда = %1 dBm (время %2 мс)")).arg(ampl).arg(elapsed));
     } else {
-        appendToTerminal("Ошибка запроса амплитуды", false, true);
+        appendToTerminal(tr("Ошибка запроса амплитуды"), false, true);
     }
 }
 
@@ -166,9 +168,9 @@ void GrattenControlWidget::onSetOutputClicked()
     qint64 elapsed = m_timer.elapsed();
     if (result) {
         updateLastOpTime(elapsed);
-        appendToTerminal(QString("Выход %1 за %2 мс").arg(enable ? "включён" : "выключен").arg(elapsed));
+        appendToTerminal(QString(tr("Выход %1 за %2 мс")).arg(enable ? tr("включён") : tr("выключен")).arg(elapsed));
     } else {
-        appendToTerminal("Ошибка установки выхода", false, true);
+        appendToTerminal(tr("Ошибка установки выхода"), false, true);
     }
 }
 
@@ -179,14 +181,14 @@ void GrattenControlWidget::onQueryOutputClicked()
     qint64 elapsed = m_timer.elapsed();
     ui->chkOutput->setChecked(on);
     updateLastOpTime(elapsed);
-    appendToTerminal(QString("Выход = %1 (время %2 мс)").arg(on ? "вкл" : "выкл").arg(elapsed));
+    appendToTerminal(QString(tr("Выход = %1 (время %2 мс)")).arg(on ? tr("вкл") : tr("выкл")).arg(elapsed));
 }
 
 void GrattenControlWidget::onFrequencyChanged(int channel, double freq)
 {
     if (channel == 1) {
         ui->editFreq->setText(QString::number(freq));
-        appendToTerminal(QString("Событие: частота канала %1 изменена на %2 Гц").arg(channel).arg(freq));
+        appendToTerminal(QString(tr("Событие: частота канала %1 изменена на %2 Гц")).arg(channel).arg(freq));
     }
 }
 
@@ -194,7 +196,7 @@ void GrattenControlWidget::onAmplitudeChanged(int channel, double amplitude)
 {
     if (channel == 1) {
         ui->editAmpl->setText(QString::number(amplitude));
-        appendToTerminal(QString("Событие: амплитуда канала %1 изменена на %2 dBm").arg(channel).arg(amplitude));
+        appendToTerminal(QString(tr("Событие: амплитуда канала %1 изменена на %2 dBm")).arg(channel).arg(amplitude));
     }
 }
 
@@ -202,16 +204,22 @@ void GrattenControlWidget::onOutputChanged(int channel, bool enabled)
 {
     if (channel == 1) {
         ui->chkOutput->setChecked(enabled);
-        appendToTerminal(QString("Событие: выход канала %1 %2").arg(channel).arg(enabled ? "включён" : "выключен"));
+        appendToTerminal(QString(tr("Событие: выход канала %1 %2")).arg(channel).arg(enabled ? tr("включён") : tr("выключен")));
     }
 }
 
 void GrattenControlWidget::onError(const QString &error)
 {
-    appendToTerminal("ОШИБКА: " + error, false, true);
+    appendToTerminal(tr("ОШИБКА: ") + error, false, true);
 }
 
 void GrattenControlWidget::updateLastOpTime(qint64 elapsedMs)
 {
-    ui->lblLastOpTime->setText(QString("Время последней операции: %1 мс").arg(elapsedMs));
+    ui->lblLastOpTime->setText(QString(tr("Время последней операции: %1 мс")).arg(elapsedMs));
+}
+
+void GrattenControlWidget::onSweepClicked()
+{
+    SweepDialog dlg(m_controller, 1, this);
+    dlg.exec();
 }

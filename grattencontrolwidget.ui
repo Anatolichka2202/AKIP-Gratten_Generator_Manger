@@ -116,6 +116,13 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QPushButton" name="btnSweep">
+       <property name="text">
+        <string>Свип...</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
