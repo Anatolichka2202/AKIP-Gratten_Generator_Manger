@@ -39,6 +39,15 @@ public:
     virtual double queryFMDeviation(int channel) = 0;
     virtual bool queryFMState(int channel) = 0;
 
+    // ==================== Sweep ====================
+    virtual bool setSweepStart(int channel, double freqHz) = 0;
+    virtual bool setSweepStop(int channel, double freqHz) = 0;
+    virtual bool setSweepDwellTime(int channel, double seconds) = 0;
+    virtual bool setSweepState(int channel, bool enable) = 0;
+    virtual double querySweepStart(int channel) = 0;
+    virtual double querySweepStop(int channel) = 0;
+    virtual bool querySweepState(int channel) = 0;
+
     // ==================== Запросы текущих значений ====================
     virtual double queryFrequency(int channel) = 0;
     virtual bool queryOutput(int channel) = 0;
@@ -70,14 +79,16 @@ signals:
     void amDepthChanged(int channel, double percent);                    // NEW
     void amStateChanged(int channel, bool enabled);                      // NEW
 
-    // FM сигналы
+    // FM signals
     void fmFrequencyChanged(int channel, double freq);
     void fmDeviationChanged(int channel, double deviation);
     void fmStateChanged(int channel, bool enabled);
 
-    // ==================== Методы с замером времени ====================
-    virtual bool sendCommandTimed(const QString &cmd, qint64 &elapsedMs) = 0;
-    virtual bool queryCommandTimed(const QString &cmd, QString &response, qint64 &elapsedMs) = 0;
+    // Sweep signals
+    void sweepStartChanged(int channel, double freq);
+    void sweepStopChanged(int channel, double freq);
+    void sweepStateChanged(int channel, bool enabled);
+
 };
 
 #endif // IAKIPCONTROLLER_H

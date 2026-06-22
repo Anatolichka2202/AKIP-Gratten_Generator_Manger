@@ -1,5 +1,6 @@
 #include "grattencontrolwidget.h"
 #include "ui_grattencontrolwidget.h"
+#include "sweepdialog.h"
 #include <QDateTime>
 #include <QDebug>
 
@@ -23,6 +24,7 @@ GrattenControlWidget::GrattenControlWidget(IAkipController *controller, QWidget 
     connect(ui->btnQueryOutput, &QPushButton::clicked, this, &GrattenControlWidget::onQueryOutputClicked);
     connect(ui->btnSend, &QPushButton::clicked, this, &GrattenControlWidget::onSendCommandClicked);
     connect(ui->cmdLineEdit, &QLineEdit::returnPressed, this, &GrattenControlWidget::onSendCommandClicked);
+    connect(ui->btnSweep, &QPushButton::clicked, this, &GrattenControlWidget::onSweepClicked);
 
     // Подключение сигналов контроллера
     connect(m_controller, &IAkipController::frequencyChanged, this, &GrattenControlWidget::onFrequencyChanged);
@@ -214,4 +216,10 @@ void GrattenControlWidget::onError(const QString &error)
 void GrattenControlWidget::updateLastOpTime(qint64 elapsedMs)
 {
     ui->lblLastOpTime->setText(QString(tr("Время последней операции: %1 мс")).arg(elapsedMs));
+}
+
+void GrattenControlWidget::onSweepClicked()
+{
+    SweepDialog dlg(m_controller, 1, this);
+    dlg.exec();
 }
