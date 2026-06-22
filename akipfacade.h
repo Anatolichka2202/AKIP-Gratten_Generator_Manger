@@ -32,6 +32,14 @@ public:
     QString getIdentity() override;
     bool reset() override;
 
+    // ==================== FM модуляция ====================
+    bool setFMFrequency(int channel, double freqHz) override;
+    bool setFMDeviation(int channel, double freqHz) override;
+    bool setFMState(int channel, bool enable) override;
+    double queryFMFrequency(int channel) override;
+    double queryFMDeviation(int channel) override;
+    bool queryFMState(int channel) override;
+
     // ==================== Запросы текущих значений ====================
     double queryFrequency(int channel) override;
     bool queryOutput(int channel) override;

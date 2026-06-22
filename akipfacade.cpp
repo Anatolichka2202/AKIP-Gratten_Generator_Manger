@@ -360,6 +360,75 @@ bool AkipFacade::setAMState(int channel, bool enable)
 bool AkipFacade::queryAMState(int channel)
 {
     Q_UNUSED(channel);
-    // Запросить состояние AM сложно, вернём false.
+    if (!ensureAvailable()) return false;
+    QString resp = m_usb.queryScpiCommand("AM:STAT?");
+    return resp.contains("ON", Qt::CaseInsensitive) || resp.trimmed() == "1";
+}
+
+// ==================== FM модуляция ====================
+// TODO: verify exact AKIP-3417 (Suin TFG) FM command syntax with physical device.
+// The commands below follow Suin TFG series convention by analogy with AM commands.
+
+bool AkipFacade::setFMFrequency(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = QString("FM:INT:FREQ %1").arg(freqHz, 0, 'f', 0);
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit fmFrequencyChanged(channel, freqHz);
+        return true;
+    }
     return false;
+}
+
+bool AkipFacade::setFMDeviation(int channel, double freqHz)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = QString("FM:DEV %1").arg(freqHz, 0, 'f', 0);
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit fmDeviationChanged(channel, freqHz);
+        return true;
+    }
+    return false;
+}
+
+bool AkipFacade::setFMState(int channel, bool enable)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString cmd = enable ? "FM:STAT ON" : "FM:STAT OFF";
+    if (m_usb.sendScpiCommand(cmd)) {
+        emit fmStateChanged(channel, enable);
+        return true;
+    }
+    return false;
+}
+
+double AkipFacade::queryFMFrequency(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_usb.queryScpiCommand("FM:INT:FREQ?");
+    bool ok;
+    double val = resp.toDouble(&ok);
+    return ok ? val : 0.0;
+}
+
+double AkipFacade::queryFMDeviation(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return 0.0;
+    QString resp = m_usb.queryScpiCommand("FM:DEV?");
+    bool ok;
+    double val = resp.toDouble(&ok);
+    return ok ? val : 0.0;
+}
+
+bool AkipFacade::queryFMState(int channel)
+{
+    Q_UNUSED(channel);
+    if (!ensureAvailable()) return false;
+    QString resp = m_usb.queryScpiCommand("FM:STAT?");
+    return resp.contains("ON", Qt::CaseInsensitive) || resp.trimmed() == "1";
 }
