@@ -25,6 +25,7 @@ set(SOURCES
 
 add_executable(AKIP-manager_module ${SOURCES}
     mainwindow.h mainwindow.cpp mainwindow.ui
+    channelwidget.h channelwidget.cpp channelwidget.ui
     akipfacade.h akipfacade.cpp
     iakipcontroller.h
     laninterface.h laninterface.cpp
@@ -32,7 +33,9 @@ add_executable(AKIP-manager_module ${SOURCES}
     grattencontrolwidget.h grattencontrolwidget.cpp grattencontrolwidget.ui
     abstractscpicontroller.h abstractscpicontroller.cpp
     gratten_limits.h
-    sweepdialog.h sweepdialog.cpp sweepdialog.ui)
+    sweepdialog.h sweepdialog.cpp sweepdialog.ui
+    settingsmanager.h settingsmanager.cpp
+    settingsdialog.h settingsdialog.cpp settingsdialog.ui)
 
 # Включаем автоматический запуск MOC
 set_target_properties(AKIP-manager_module PROPERTIES
