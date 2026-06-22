@@ -2,7 +2,7 @@
 #include "ui_channelwidget.h"
 
 ChannelWidget::ChannelWidget(int channelNumber, IAkipController *controller, QWidget *parent)
-    : QWidget(parent)
+    : QGroupBox(parent)
     , ui(new Ui::ChannelWidget)
     , m_controller(controller)
     , m_channel(channelNumber)
@@ -10,7 +10,7 @@ ChannelWidget::ChannelWidget(int channelNumber, IAkipController *controller, QWi
     ui->setupUi(this);
 
     // Set group box title with channel number
-    ui->ChannelWidget->setTitle(tr("Канал %1").arg(QChar('A' + channelNumber - 1)));
+    ui->groupBox->setTitle(tr("Канал %1").arg(QChar('A' + channelNumber - 1)));
 
     // Connect button signals
     connect(ui->btnSetFreq, &QPushButton::clicked, this, &ChannelWidget::onSetFreqClicked);
