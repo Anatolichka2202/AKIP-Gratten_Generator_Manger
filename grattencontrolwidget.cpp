@@ -1,6 +1,7 @@
 #include "grattencontrolwidget.h"
 #include "ui_grattencontrolwidget.h"
 #include "sweepdialog.h"
+#include "modulationdialog.h"
 #include <QDateTime>
 #include <QDebug>
 
@@ -25,6 +26,7 @@ GrattenControlWidget::GrattenControlWidget(IAkipController *controller, QWidget 
     connect(ui->btnSend, &QPushButton::clicked, this, &GrattenControlWidget::onSendCommandClicked);
     connect(ui->cmdLineEdit, &QLineEdit::returnPressed, this, &GrattenControlWidget::onSendCommandClicked);
     connect(ui->btnSweep, &QPushButton::clicked, this, &GrattenControlWidget::onSweepClicked);
+    connect(ui->btnModulation, &QPushButton::clicked, this, &GrattenControlWidget::onModulationClicked);
 
     // Подключение сигналов контроллера
     connect(m_controller, &IAkipController::frequencyChanged, this, &GrattenControlWidget::onFrequencyChanged);
@@ -221,5 +223,11 @@ void GrattenControlWidget::updateLastOpTime(qint64 elapsedMs)
 void GrattenControlWidget::onSweepClicked()
 {
     SweepDialog dlg(m_controller, 1, this);
+    dlg.exec();
+}
+
+void GrattenControlWidget::onModulationClicked()
+{
+    ModulationDialog dlg(m_controller, 1, this);
     dlg.exec();
 }

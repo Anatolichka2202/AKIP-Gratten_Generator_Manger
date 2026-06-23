@@ -11,6 +11,7 @@
 #include "settingsdialog.h"
 #include "languageswitcher.h"
 #include "channelwidget.h"
+#include "splashwidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -75,6 +76,9 @@ private:
 
     void setupForDeviceType(DeviceType type);
     void setupMenu();
+    void showSplash();
+
+    SplashWidget *m_splashPage;
 };
 
 #endif // MAINWINDOW_H

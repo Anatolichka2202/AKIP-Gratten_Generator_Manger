@@ -123,6 +123,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="btnModulation">
+       <property name="text">
+        <string>Модуляция...</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>

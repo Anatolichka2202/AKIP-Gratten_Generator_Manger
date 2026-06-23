@@ -22,10 +22,21 @@ MainWindow::MainWindow(QWidget *parent)
     , m_sbDevice(nullptr)
     , m_sbConn(nullptr)
     , m_sbLastOp(nullptr)
+    , m_splashPage(nullptr)
 {
     ui->setupUi(this);
     m_akipPage = ui->stackedWidget->widget(0);
     m_grattenPage = nullptr;
+
+    // Splash screen shown when no device is connected
+    m_splashPage = new SplashWidget(this);
+    ui->stackedWidget->addWidget(m_splashPage);
+    connect(m_splashPage, &SplashWidget::connectRequested,
+            this, &MainWindow::on_btnConnect_clicked);
+    connect(m_splashPage, &SplashWidget::settingsRequested, this, [this]() {
+        SettingsDialog dlg(this);
+        dlg.exec();
+    });
 
     m_langSwitcher = new LanguageSwitcher(qApp, this);
 
@@ -64,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
     setChannelControlsEnabled(false);
     updateConnectionStatus();
     logMessage(tr("Программа запущена"));
+    showSplash();
 
     // Setup Help menu with About dialog
     QMenu *helpMenu = menuBar()->addMenu(tr("Справка"));
@@ -203,6 +215,7 @@ void MainWindow::on_btnDisconnect_clicked()
         updateConnectionStatus();
         updateStatusBar();
         logMessage(tr("Устройство отключено"));
+        showSplash();
     }
 }
 
@@ -381,10 +394,8 @@ void MainWindow::checkAvailableDevices()
         switchToDevice(GRATTEN);
     }
     else {
-        logMessage(tr("Ни одно устройство не найдено. Подключитесь вручную."));
-        QMessageBox::information(this, tr("Поиск устройств"),
-                                 tr("Не удалось обнаружить ни АКИП (USB), ни Gratten (LAN).\n"
-                                    "Проверьте подключение и нажмите кнопку Подключиться для выбора."));
+        logMessage(tr("Ни одно устройство не найдено."));
+        showSplash();
     }
 }
 
@@ -450,12 +461,17 @@ void MainWindow::switchToDevice(DeviceType type)
 
         setupForDeviceType(type);
 
+        SettingsManager::instance().setLastDeviceType(type == AKIP ? "AKIP" : "GRATTEN");
         ui->lblDeviceType->setText(type == AKIP ? tr("АКИП-3417") : tr("Gratten GA1483"));
     } else {
         logMessage(tr("Ошибка открытия выбранного устройства"));
         delete m_controller;
         m_controller = nullptr;
         m_currentType = Unknown;
+        updateConnectionStatus();
+        updateStatusBar();
+        showSplash();
+        return;
     }
     updateConnectionStatus();
     updateStatusBar();
@@ -484,4 +500,19 @@ void MainWindow::setupForDeviceType(DeviceType type)
     } else { // Unknown
         setChannelControlsEnabled(false);
     }
+}
+
+void MainWindow::showSplash()
+{
+    auto &cfg = SettingsManager::instance();
+    QString lastType = cfg.lastDeviceType();
+    if (lastType == "AKIP") {
+        m_splashPage->setLastDevice(tr("АКИП-3417"), tr("USB"));
+    } else if (lastType == "GRATTEN") {
+        m_splashPage->setLastDevice(tr("Gratten GA1483"),
+            QString("%1:%2").arg(cfg.grattenHost()).arg(cfg.grattenPort()));
+    } else {
+        m_splashPage->setLastDevice("", "");
+    }
+    ui->stackedWidget->setCurrentWidget(m_splashPage);
 }

@@ -27,8 +27,9 @@ private slots:
     void onQueryAmplClicked();
     void onSetOutputClicked();
     void onQueryOutputClicked();
-    void onSendCommandClicked(); // новая кнопка
+    void onSendCommandClicked();
     void onSweepClicked();
+    void onModulationClicked();
 
     void onFrequencyChanged(int channel, double freq);
     void onAmplitudeChanged(int channel, double amplitude);
