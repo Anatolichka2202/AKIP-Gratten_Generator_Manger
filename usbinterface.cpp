@@ -2,7 +2,21 @@
 #include <QDebug>
 #include <QElapsedTimer>
 #include <QThread>
+
+#ifndef NO_USB_INTERFACE
 #include <windows.h>
+#endif
+#ifdef NO_USB_INTERFACE
+
+// Stub implementations for non-Windows platforms
+UsbInterface::UsbInterface(QObject *parent)
+    : QObject(parent), m_isOpen(false)
+{
+}
+
+#else
+
+// Full implementation for Windows
 UsbInterface::UsbInterface(QObject *parent)
     : QObject(parent)
     , m_deviceHandle(INVALID_HANDLE_VALUE)
@@ -11,6 +25,14 @@ UsbInterface::UsbInterface(QObject *parent)
     , m_readTimeout(2000)
 {
 }
+
+#endif
+
+#ifdef NO_USB_INTERFACE
+
+UsbInterface::~UsbInterface() {}
+
+#else
 
 UsbInterface::~UsbInterface()
 {
@@ -23,6 +45,10 @@ ULONG UsbInterface::handleToULong() const
     // В 64-битной системе используем ULONG_PTR для безопасного приведения
     return static_cast<ULONG>(reinterpret_cast<ULONG_PTR>(m_deviceHandle));
 }
+
+#endif
+
+#ifndef NO_USB_INTERFACE
 
 bool UsbInterface::open(int index)
 {
@@ -46,6 +72,18 @@ bool UsbInterface::open(int index)
     return true;
 }
 
+#else
+
+bool UsbInterface::open(int)
+{
+    emit errorOccurred("USB interface not supported on this platform");
+    return false;
+}
+
+#endif
+
+#ifndef NO_USB_INTERFACE
+
 void UsbInterface::close()
 {
     if (m_isOpen && m_deviceHandle != INVALID_HANDLE_VALUE) {
@@ -56,6 +94,18 @@ void UsbInterface::close()
         emit deviceClosed();
     }
 }
+
+#else
+
+void UsbInterface::close()
+{
+    m_isOpen = false;
+    emit deviceClosed();
+}
+
+#endif
+
+#ifndef NO_USB_INTERFACE
 
 bool UsbInterface::sendScpiCommand(const QString &command)
 {
@@ -81,6 +131,18 @@ bool UsbInterface::sendScpiCommand(const QString &command)
     }
 }
 
+#else
+
+bool UsbInterface::sendScpiCommand(const QString &)
+{
+    emit errorOccurred("USB interface not supported on this platform");
+    return false;
+}
+
+#endif
+
+#ifndef NO_USB_INTERFACE
+
 QString UsbInterface::queryScpiCommand(const QString &command, int timeoutMs)
 {
     if (!sendScpiCommand(command)) {
@@ -94,6 +156,15 @@ QString UsbInterface::queryScpiCommand(const QString &command, int timeoutMs)
 
     return "OK"; // Для команд без запроса возвращаем условное подтверждение
 }
+
+#else
+
+QString UsbInterface::queryScpiCommand(const QString &, int)
+{
+    return QString();
+}
+
+#endif
 
 bool UsbInterface::setOutput(bool enable, int channel)
 {
@@ -118,6 +189,8 @@ bool UsbInterface::resetDevice()
 {
     return sendScpiCommand("*RST");
 }
+
+#ifndef NO_USB_INTERFACE
 
 QString UsbInterface::waitForResponse(int timeoutMs)
 {
@@ -148,10 +221,15 @@ QString UsbInterface::waitForResponse(int timeoutMs)
     response = response.trimmed();
     return QString::fromLatin1(response);
 }
+
+#endif
+
 bool UsbInterface::isOpen() const
 {
     return m_isOpen;
 }
+
+#ifndef NO_USB_INTERFACE
 
 bool UsbInterface::setWriteTimeout(int ms)
 {
@@ -170,6 +248,20 @@ bool UsbInterface::setReadTimeout(int ms)
     }
     return true;
 }
+
+#else
+
+bool UsbInterface::setWriteTimeout(int)
+{
+    return true;
+}
+
+bool UsbInterface::setReadTimeout(int)
+{
+    return true;
+}
+
+#endif
 
 // Заглушки для пока нереализованных методов
 bool UsbInterface::setAmplitude(double amplitude, const QString &unit, int channel)

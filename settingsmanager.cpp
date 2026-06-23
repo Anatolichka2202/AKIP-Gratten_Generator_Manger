@@ -56,7 +56,7 @@ void SettingsManager::setGrattenResponseTimeoutMs(int ms)
 
 QString SettingsManager::language() const
 {
-    return m_settings.value("general/language", "ru").toString();
+    return m_settings.value("general/language", "ru_RU").toString();
 }
 
 void SettingsManager::setLanguage(const QString &lang)
