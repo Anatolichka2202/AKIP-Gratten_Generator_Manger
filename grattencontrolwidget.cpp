@@ -95,20 +95,43 @@ void GrattenControlWidget::onSendCommandClicked()
     }
 }
 
-void GrattenControlWidget::onSetFreqClicked()
+double GrattenControlWidget::freqToHz() const
 {
     bool ok;
-    double freq = ui->editFreq->text().toDouble(&ok);
-    if (!ok || freq <= 0) {
+    double val = ui->editFreq->text().toDouble(&ok);
+    if (!ok) return -1.0;
+    QString unit = ui->cmbFreqUnit->currentText();
+    if (unit == "GHz") return val * 1e9;
+    if (unit == "MHz") return val * 1e6;
+    if (unit == "kHz") return val * 1e3;
+    return val; // Hz
+}
+
+void GrattenControlWidget::setFreqFromHz(double hz)
+{
+    QString unit = ui->cmbFreqUnit->currentText();
+    double display;
+    if (unit == "GHz") display = hz / 1e9;
+    else if (unit == "MHz") display = hz / 1e6;
+    else if (unit == "kHz") display = hz / 1e3;
+    else display = hz;
+    ui->editFreq->setText(QString::number(display, 'g', 10));
+}
+
+void GrattenControlWidget::onSetFreqClicked()
+{
+    double freqHz = freqToHz();
+    if (freqHz <= 0) {
         appendToTerminal(tr("Некорректная частота"), false, true);
         return;
     }
     m_timer.start();
-    bool result = m_controller->setFrequency(1, freq);
+    bool result = m_controller->setFrequency(1, freqHz);
     qint64 elapsed = m_timer.elapsed();
     if (result) {
         updateLastOpTime(elapsed);
-        appendToTerminal(QString(tr("Частота установлена в %1 Гц за %2 мс")).arg(freq).arg(elapsed));
+        appendToTerminal(QString(tr("Частота установлена в %1 %2 за %3 мс"))
+            .arg(ui->editFreq->text()).arg(ui->cmbFreqUnit->currentText()).arg(elapsed));
     } else {
         appendToTerminal(tr("Ошибка установки частоты"), false, true);
     }
@@ -117,12 +140,13 @@ void GrattenControlWidget::onSetFreqClicked()
 void GrattenControlWidget::onQueryFreqClicked()
 {
     m_timer.start();
-    double freq = m_controller->queryFrequency(1);
+    double freqHz = m_controller->queryFrequency(1);
     qint64 elapsed = m_timer.elapsed();
-    if (freq > 0) {
-        ui->editFreq->setText(QString::number(freq));
+    if (freqHz > 0) {
+        setFreqFromHz(freqHz);
         updateLastOpTime(elapsed);
-        appendToTerminal(QString(tr("Частота = %1 Гц (время %2 мс)")).arg(freq).arg(elapsed));
+        appendToTerminal(QString(tr("Частота = %1 %2 (время %3 мс)"))
+            .arg(ui->editFreq->text()).arg(ui->cmbFreqUnit->currentText()).arg(elapsed));
     } else {
         appendToTerminal(tr("Ошибка запроса частоты"), false, true);
     }
@@ -186,11 +210,12 @@ void GrattenControlWidget::onQueryOutputClicked()
     appendToTerminal(QString(tr("Выход = %1 (время %2 мс)")).arg(on ? tr("вкл") : tr("выкл")).arg(elapsed));
 }
 
-void GrattenControlWidget::onFrequencyChanged(int channel, double freq)
+void GrattenControlWidget::onFrequencyChanged(int channel, double freqHz)
 {
     if (channel == 1) {
-        ui->editFreq->setText(QString::number(freq));
-        appendToTerminal(QString(tr("Событие: частота канала %1 изменена на %2 Гц")).arg(channel).arg(freq));
+        setFreqFromHz(freqHz);
+        appendToTerminal(QString(tr("Событие: частота канала %1 изменена на %2 %3"))
+            .arg(channel).arg(ui->editFreq->text()).arg(ui->cmbFreqUnit->currentText()));
     }
 }
 

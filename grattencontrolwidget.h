@@ -43,6 +43,8 @@ private:
 
     void updateLastOpTime(qint64 elapsedMs);
     void appendToTerminal(const QString &text, bool isCommand = false, bool isError = false);
+    double freqToHz() const;
+    void setFreqFromHz(double hz);
 };
 
 #endif // GRATTENCONTROLWIDGET_H
