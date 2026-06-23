@@ -150,8 +150,8 @@ void MainWindow::on_btnDisconnect_clicked()
         delete m_controller;
         m_controller = nullptr;
         m_currentType = Unknown;
-        ui->lblIdn->setText("—");
-        ui->lblDeviceType->setText("—");
+        ui->lblIdn->setText(tr("—"));
+        ui->lblDeviceType->setText(tr("—"));
         setChannelControlsEnabled(false);
         updateConnectionStatus();
         logMessage(tr("Устройство отключено"));
@@ -402,7 +402,7 @@ void MainWindow::switchToDevice(DeviceType type)
 
         setupForDeviceType(type);
 
-        ui->lblDeviceType->setText(type == AKIP ? "АКИП-3417" : "Gratten GA1483");
+        ui->lblDeviceType->setText(type == AKIP ? tr("АКИП-3417") : tr("Gratten GA1483"));
     } else {
         logMessage(tr("Ошибка открытия выбранного устройства"));
         delete m_controller;
