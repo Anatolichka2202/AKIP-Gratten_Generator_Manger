@@ -96,9 +96,17 @@ void MainWindow::logMessage(const QString &msg)
 
 void MainWindow::setChannelControlsEnabled(bool enabled)
 {
-    m_channelA->setEnabled(enabled);
-    m_channelB->setEnabled(enabled);
-    ui->grpDelays->setEnabled(enabled);
+    if (m_currentType == GRATTEN) {
+        // In Gratten mode, enable the Gratten page instead of channel controls
+        if (m_grattenPage) {
+            m_grattenPage->setEnabled(enabled);
+        }
+    } else if (m_currentType == AKIP) {
+        // In AKIP mode, enable channel A/B and delays
+        if (m_channelA) m_channelA->setEnabled(enabled);
+        if (m_channelB) m_channelB->setEnabled(enabled);
+        ui->grpDelays->setEnabled(enabled);
+    }
 }
 
 void MainWindow::updateConnectionStatus()
