@@ -4,5 +4,5 @@
 #define APP_VERSION_PATCH 0
 #define APP_VERSION_STRING "0.2.0"
 #define APP_NAME "AKIP/Gratten Generator Manager"
-#define APP_ORG  "TestLab"
-#define APP_ORG_DOMAIN "testlab.local"
+#define APP_ORG  "MilTech"
+#define APP_ORG_DOMAIN "miltech.local"
