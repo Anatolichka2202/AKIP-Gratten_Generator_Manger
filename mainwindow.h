@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QElapsedTimer>
+#include <QLabel>
 #include "iakipcontroller.h"
 #include "akipfacade.h"
 #include "grattenga1483controller.h"
@@ -50,6 +51,7 @@ private:
     void logMessage(const QString &msg);
     void setChannelControlsEnabled(bool enabled);
     void updateConnectionStatus();
+    void updateStatusBar();
 
     enum DeviceType { Unknown, AKIP, GRATTEN };
     IAkipController *m_controller;
@@ -66,6 +68,11 @@ private:
     ChannelWidget *m_channelA;
     ChannelWidget *m_channelB;
     LanguageSwitcher *m_langSwitcher;
+
+    QLabel *m_sbDevice;
+    QLabel *m_sbConn;
+    QLabel *m_sbLastOp;
+
     void setupForDeviceType(DeviceType type);
     void setupMenu();
 };
