@@ -1,0 +1,52 @@
+/* common.qss — shared rules across all themes */
+
+* {
+    font-family: "Segoe UI", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    outline: none;
+}
+
+/* Numeric value inputs use monospace */
+QLineEdit[valueInput="true"],
+QDoubleSpinBox,
+QSpinBox {
+    font-family: "Consolas", "Fira Mono", "Courier New", monospace;
+}
+
+/* Log area always monospace */
+QTextEdit#txtLog {
+    font-family: "Consolas", "Fira Mono", "Courier New", monospace;
+    font-size: 12px;
+}
+
+/* Consistent button minimum sizes */
+QPushButton {
+    min-height: 28px;
+    min-width: 60px;
+}
+
+/* GroupBox consistent margin/padding */
+QGroupBox {
+    margin-top: 18px;
+    padding: 14px 10px 10px 10px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 12px;
+    padding: 0 6px;
+    font-weight: bold;
+}
+
+/* Status bar labels separated by vertical lines */
+QStatusBar QLabel {
+    font-size: 12px;
+    padding: 0 10px;
+}
+
+/* Toolbar uniform padding */
+QToolBar {
+    spacing: 4px;
+    padding: 4px 8px;
+}
