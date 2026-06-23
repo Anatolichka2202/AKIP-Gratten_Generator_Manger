@@ -31,7 +31,9 @@ add_executable(AKIP-Gratten-Generator-Manager ${SOURCES}
     abstractscpicontroller.h abstractscpicontroller.cpp
     gratten_limits.h
     settingsmanager.h settingsmanager.cpp
-    settingsdialog.h settingsdialog.cpp settingsdialog.ui)
+    settingsdialog.h settingsdialog.cpp settingsdialog.ui
+    thememanager.h
+    resources.qrc)
 
 # Включаем автоматический запуск MOC
 set_target_properties(AKIP-Gratten-Generator-Manager PROPERTIES
