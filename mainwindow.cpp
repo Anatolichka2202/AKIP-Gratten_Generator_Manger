@@ -19,6 +19,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_channelA(nullptr)
     , m_channelB(nullptr)
     , m_langSwitcher(nullptr)
+    , m_sbDevice(nullptr)
+    , m_sbConn(nullptr)
+    , m_sbLastOp(nullptr)
 {
     ui->setupUi(this);
     m_akipPage = ui->stackedWidget->widget(0);
@@ -27,6 +30,20 @@ MainWindow::MainWindow(QWidget *parent)
     m_langSwitcher = new LanguageSwitcher(qApp, this);
 
     setupMenu();
+
+    // Setup status bar
+    m_sbDevice = new QLabel(tr("Не подключено"), this);
+    m_sbDevice->setMinimumWidth(150);
+    statusBar()->addWidget(m_sbDevice);
+
+    m_sbConn = new QLabel(this);
+    m_sbConn->setMinimumWidth(150);
+    statusBar()->addWidget(m_sbConn, 1);
+
+    m_sbLastOp = new QLabel(tr("—"), this);
+    m_sbLastOp->setMinimumWidth(150);
+    m_sbLastOp->setAlignment(Qt::AlignRight);
+    statusBar()->addPermanentWidget(m_sbLastOp);
 
     // Create channel widgets for AKIP page
     m_channelA = new ChannelWidget(1, nullptr, this);
@@ -121,6 +138,36 @@ void MainWindow::updateConnectionStatus()
         ui->btnConnect->setEnabled(true);
         ui->btnDisconnect->setEnabled(false);
     }
+    updateStatusBar();
+}
+
+void MainWindow::updateStatusBar()
+{
+    // Update device type label
+    switch (m_currentType) {
+    case AKIP:
+        m_sbDevice->setText("АКИП-3417");
+        break;
+    case GRATTEN:
+        m_sbDevice->setText("Gratten GA1483");
+        break;
+    default:
+        m_sbDevice->setText(tr("Не подключено"));
+        break;
+    }
+
+    // Update connection info label
+    bool avail = m_controller ? m_controller->isAvailable() : false;
+    if (avail && m_currentType == GRATTEN) {
+        auto &cfg = SettingsManager::instance();
+        m_sbConn->setText(QString("%1:%2")
+                         .arg(cfg.grattenHost())
+                         .arg(cfg.grattenPort()));
+    } else if (avail && m_currentType == AKIP) {
+        m_sbConn->setText(tr("USB CH375"));
+    } else {
+        m_sbConn->setText("");
+    }
 }
 
 // ==================== Слоты подключения ====================
@@ -154,6 +201,7 @@ void MainWindow::on_btnDisconnect_clicked()
         ui->lblDeviceType->setText(tr("—"));
         setChannelControlsEnabled(false);
         updateConnectionStatus();
+        updateStatusBar();
         logMessage(tr("Устройство отключено"));
     }
 }
@@ -410,6 +458,7 @@ void MainWindow::switchToDevice(DeviceType type)
         m_currentType = Unknown;
     }
     updateConnectionStatus();
+    updateStatusBar();
 }
 
 void MainWindow::setupForDeviceType(DeviceType type)
