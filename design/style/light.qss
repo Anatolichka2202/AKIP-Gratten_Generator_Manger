@@ -515,3 +515,40 @@ QFrame[frameShape="4"],
 QFrame[frameShape="5"] {
     color: #ccd0da;
 }
+
+/* ────────────── SPLASH / NO-DEVICE SCREEN ────────────── */
+QWidget#splashCard {
+    background-color: #e8eaf0;
+    border: 1px solid #ccd0da;
+    border-radius: 12px;
+}
+
+QLabel#splashTitle {
+    color: #1e66f5;
+}
+
+QLabel#splashVersion {
+    color: #9ca0b0;
+    font-size: 12px;
+}
+
+QLabel#splashStatusText {
+    color: #d20f39;
+    font-weight: bold;
+}
+
+QLabel#splashLastDevice {
+    color: #9ca0b0;
+    font-size: 12px;
+}
+
+QLabel#splashHint {
+    color: #6c6f85;
+    font-size: 12px;
+}
+
+QLabel#splashDevInfo {
+    color: #9ca0b0;
+    font-size: 11px;
+    font-family: "Consolas", "Fira Mono", monospace;
+}

@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AKIP/Gratten Generator Manager — Mockup</title>
+<style>
+/* ─── Catppuccin Mocha ─── */
+:root {
+  --crust:    #11111b;
+  --mantle:   #181825;
+  --base:     #1e1e2e;
+  --surface0: #313244;
+  --surface1: #45475a;
+  --surface2: #585b70;
+  --overlay0: #6c7086;
+  --subtext0: #a6adc8;
+  --text:     #cdd6f4;
+  --blue:     #89b4fa;
+  --lavender: #b4befe;
+  --green:    #a6e3a1;
+  --red:      #f38ba8;
+  --yellow:   #f9e2af;
+  --peach:    #fab387;
+  --mono:     "Consolas","Fira Mono","Courier New",monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Segoe UI","Ubuntu",Arial,sans-serif;
+  font-size: 13px;
+  background: #0d0d1a;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+h1 {
+  color: var(--blue);
+  font-size: 15px;
+  margin-bottom: 12px;
+  letter-spacing: .5px;
+}
+
+/* ─── APP WINDOW ─── */
+.app-window {
+  width: 860px;
+  max-width: 100%;
+  background: var(--base);
+  border: 1px solid var(--surface0);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,.6);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── TITLE BAR ─── */
+.title-bar {
+  background: var(--crust);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--surface0);
+  user-select: none;
+}
+.title-bar .title { color: var(--subtext0); font-size: 12px; }
+.title-bar .controls { display: flex; gap: 6px; }
+.title-bar .controls span {
+  width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+}
+.ctrl-close   { background: var(--red); }
+.ctrl-min     { background: var(--yellow); }
+.ctrl-max     { background: var(--green); }
+
+/* ─── MENU BAR ─── */
+.menu-bar {
+  background: var(--mantle);
+  border-bottom: 1px solid var(--surface0);
+  padding: 4px 12px;
+  display: flex; gap: 4px;
+}
+.menu-item {
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 12px;
+  transition: background .15s;
+}
+.menu-item:hover { background: var(--surface0); color: var(--blue); }
+
+/* ─── TOOLBAR ─── */
+.toolbar {
+  background: var(--mantle);
+  border-bottom: 1px solid var(--surface0);
+  padding: 6px 12px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.tb-sep {
+  width: 1px; height: 24px;
+  background: var(--surface0); margin: 0 4px;
+}
+
+/* ─── BUTTONS ─── */
+.btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--surface1);
+  background: var(--surface0);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--blue); color: var(--blue); background: var(--surface1); }
+.btn.primary { background: #1a2f4a; color: var(--blue); border-color: var(--blue); font-weight: 600; }
+.btn.primary:hover { background: #243f63; border-color: var(--lavender); color: var(--lavender); }
+.btn.danger  { background: #2d1a24; color: var(--red);  border-color: var(--red); }
+.btn.danger:hover  { background: #3d2330; }
+.btn.small   { padding: 4px 10px; font-size: 11px; }
+.btn.active  { border-color: var(--green); color: var(--green); }
+.btn:disabled { opacity: .35; cursor: default; }
+
+/* ─── TABS (mode switcher) ─── */
+.mode-tabs {
+  display: flex; gap: 0;
+  background: var(--mantle);
+  padding: 0 12px;
+  border-bottom: 1px solid var(--surface0);
+}
+.mode-tab {
+  padding: 8px 20px;
+  cursor: pointer;
+  color: var(--overlay0);
+  border-bottom: 2px solid transparent;
+  font-size: 12px;
+  transition: all .15s;
+}
+.mode-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.mode-tab:hover:not(.active) { color: var(--text); }
+
+/* ─── CONTENT AREA ─── */
+.content {
+  display: flex; flex-direction: column; flex: 1;
+  padding: 14px; gap: 12px;
+  background: var(--base);
+}
+
+/* ─── PAGE (hidden by default) ─── */
+.page { display: none; flex-direction: column; gap: 12px; }
+.page.active { display: flex; }
+
+/* ─── SPLASH / NO DEVICE ─── */
+.splash-card {
+  align-self: center;
+  width: 400px;
+  margin: 20px auto;
+  background: #252535;
+  border: 1px solid var(--surface0);
+  border-radius: 12px;
+  padding: 36px 36px 28px;
+  text-align: center;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.splash-title { font-size: 20px; font-weight: 700; color: var(--blue); }
+.splash-ver { font-size: 11px; color: var(--overlay0); }
+.splash-status { color: var(--red); font-weight: 600; }
+.splash-status::before { content: "⬤ "; font-size: 9px; }
+.splash-hint { color: var(--subtext0); font-size: 12px; line-height: 1.6; }
+.splash-devices { color: var(--overlay0); font-size: 11px; font-family: var(--mono); text-align: left; }
+.splash-sep { border: none; border-top: 1px solid var(--surface0); margin: 4px 0; }
+.splash-btns { display: flex; gap: 8px; justify-content: center; }
+
+/* ─── CHANNEL PANELS ─── */
+.channels-row { display: flex; gap: 12px; }
+.group-box {
+  flex: 1;
+  background: #252535;
+  border: 1px solid var(--surface0);
+  border-radius: 8px;
+  padding: 14px 14px 12px;
+  position: relative;
+}
+.group-title {
+  position: absolute; top: -10px; left: 14px;
+  background: #252535;
+  color: var(--blue);
+  font-size: 12px; font-weight: 700;
+  padding: 0 6px;
+}
+.field-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 8px;
+}
+.field-label { color: var(--subtext0); min-width: 80px; font-size: 12px; }
+.field-input {
+  flex: 1;
+  background: var(--mantle);
+  border: 1px solid var(--surface1);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px 8px;
+  outline: none;
+  transition: border-color .15s;
+}
+.field-input:focus { border-color: var(--blue); }
+.field-unit { color: var(--overlay0); font-size: 11px; min-width: 28px; }
+.field-select {
+  background: var(--mantle);
+  border: 1px solid var(--surface1);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 4px 6px;
+  outline: none;
+}
+.field-check { accent-color: var(--blue); width: 16px; height: 16px; cursor: pointer; }
+.last-op { color: var(--overlay0); font-size: 11px; font-family: var(--mono); margin-top: 6px; }
+
+/* ─── GRATTEN PANEL ─── */
+.gratten-panel { display: flex; flex-direction: column; gap: 10px; }
+.collapse-header {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; color: var(--subtext0);
+  font-size: 12px; padding: 6px 0;
+  border-top: 1px solid var(--surface0);
+  user-select: none;
+}
+.collapse-header:hover { color: var(--blue); }
+.collapse-arrow { transition: transform .2s; display: inline-block; }
+.collapse-arrow.open { transform: rotate(90deg); }
+.collapse-body { display: none; flex-direction: column; gap: 10px; padding: 6px 0 0 0; }
+.collapse-body.open { display: flex; }
+
+/* ─── LOG ─── */
+.log-area {
+  background: var(--crust);
+  border: 1px solid var(--surface0);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--subtext0);
+  height: 90px;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+.log-toolbar { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+
+/* ─── STATUS BAR ─── */
+.status-bar {
+  background: var(--crust);
+  border-top: 1px solid var(--surface0);
+  padding: 4px 0;
+  display: flex; align-items: center;
+  font-size: 11px; color: var(--subtext0);
+}
+.sb-item {
+  padding: 0 14px;
+  border-right: 1px solid var(--surface0);
+  white-space: nowrap;
+}
+.sb-item:last-child { border-right: none; }
+.sb-item.connected { color: var(--green); }
+.sb-item.disconnected { color: var(--red); }
+
+/* ─── TOOLTIP LEGEND ─── */
+.legend {
+  width: 860px; max-width: 100%;
+  margin-top: 20px;
+  background: #252535;
+  border: 1px solid var(--surface0);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+.legend h2 { color: var(--blue); font-size: 13px; margin-bottom: 12px; }
+.palette { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatch { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+.swatch-dot { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; }
+.swatch-info { color: var(--subtext0); }
+.swatch-name { color: var(--text); }
+</style>
+</head>
+<body>
+
+<h1>AKIP/Gratten Generator Manager — Интерактивный макет (Catppuccin Mocha)</h1>
+
+<!-- ═══════════════════════════════════════════════ APP WINDOW ═══ -->
+<div class="app-window">
+
+  <!-- Title bar -->
+  <div class="title-bar">
+    <div class="controls">
+      <span class="ctrl-close"></span>
+      <span class="ctrl-min"></span>
+      <span class="ctrl-max"></span>
+    </div>
+    <div class="title">AKIP/Gratten Generator Manager v0.2.0</div>
+    <div style="width:54px"></div>
+  </div>
+
+  <!-- Menu bar -->
+  <div class="menu-bar">
+    <div class="menu-item">Настройки ▾</div>
+    <div class="menu-item">Справка ▾</div>
+    <div class="menu-item">Вид ▾</div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn primary" onclick="connectDevice()">⚡ Подключить</button>
+    <button class="btn danger"  id="btnDisconn" onclick="disconnectDevice()" disabled>✕ Отключить</button>
+    <div class="tb-sep"></div>
+    <button class="btn" id="btnIdn" onclick="sendIdn()" disabled>🔍 IDN</button>
+    <button class="btn" id="btnReset" onclick="log('Выполнен *RST', 'cmd')" disabled>↺ Сброс</button>
+    <div class="tb-sep"></div>
+    <button class="btn" onclick="openSettings()">⚙ Настройки</button>
+    <div style="flex:1"></div>
+    <span id="lblStatus" style="color:var(--red);font-size:12px;font-weight:600;">⬤ Не подключено</span>
+  </div>
+
+  <!-- Mode tabs -->
+  <div class="mode-tabs">
+    <div class="mode-tab" id="tabSplash" onclick="showPage('splash')">— Нет устройства</div>
+    <div class="mode-tab" id="tabAkip"   onclick="showPage('akip')">📡 АКИП-3417</div>
+    <div class="mode-tab" id="tabGratten" onclick="showPage('gratten')">📡 Gratten GA1483</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ─── SPLASH page ─── -->
+    <div class="page active" id="pageSplash">
+      <div class="splash-card">
+        <div class="splash-title">AKIP/Gratten<br>Generator Manager</div>
+        <div class="splash-ver">версия 0.2.0</div>
+        <div class="splash-status">Устройство не подключено</div>
+        <hr class="splash-sep">
+        <div class="splash-hint">
+          Нажмите <strong>Подключить</strong> на панели инструментов<br>
+          или выберите устройство через Настройки → Подключение
+        </div>
+        <div class="splash-devices">
+• АКИП-3417 — DDS, USB CH375, 2 канала, до 40 МГц<br>
+• Gratten GA1483 — RF, LAN TCP:5025, 1 канал, до 4 ГГц
+        </div>
+        <div class="splash-btns">
+          <button class="btn primary" onclick="connectDevice()">⚡ Подключить</button>
+          <button class="btn" onclick="openSettings()">⚙ Настройки</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── AKIP page ─── -->
+    <div class="page" id="pageAkip">
+      <div class="channels-row">
+
+        <!-- Channel A -->
+        <div class="group-box">
+          <div class="group-title">📡 Канал A</div>
+          <div class="field-row">
+            <div class="field-label">Частота</div>
+            <input class="field-input" type="text" value="1000000" id="freqA">
+            <div class="field-unit">Гц</div>
+            <button class="btn small" onclick="setFreq('A')">Уст</button>
+            <button class="btn small" onclick="queryFreq('A')">Запр</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Амплитуда</div>
+            <input class="field-input" type="text" value="1.0" id="amplA">
+            <select class="field-select" id="unitA"><option>Vpp</option><option>Vrms</option><option>dBm</option></select>
+            <button class="btn small" onclick="setAmpl('A')">Уст</button>
+            <button class="btn small" onclick="queryAmpl('A')">Запр</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Форма</div>
+            <select class="field-select" id="waveA" style="flex:1">
+              <option>Sine</option><option>Square</option><option>Triangle</option><option>Ramp</option>
+            </select>
+            <button class="btn small" onclick="setWave('A')">Уст</button>
+            <button class="btn small" onclick="log('A: форма '+document.getElementById(\'waveA\').value+' запрошена','query')">Запр</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Выход</div>
+            <input type="checkbox" class="field-check" id="outA" checked>
+            <label for="outA" style="font-size:12px;color:var(--text);cursor:pointer"> Включён</label>
+            <button class="btn small" onclick="setOut('A')" style="margin-left:auto">Уст</button>
+            <button class="btn small" onclick="queryOut('A')">Запр</button>
+          </div>
+          <div class="last-op" id="lopA">⏱ Посл. операция: —</div>
+        </div>
+
+        <!-- Channel B -->
+        <div class="group-box">
+          <div class="group-title">📡 Канал B</div>
+          <div class="field-row">
+            <div class="field-label">Частота</div>
+            <input class="field-input" type="text" value="2000000" id="freqB">
+            <div class="field-unit">Гц</div>
+            <button class="btn small" onclick="setFreq('B')">Уст</button>
+            <button class="btn small" onclick="queryFreq('B')">Запр</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Амплитуда</div>
+            <input class="field-input" type="text" value="0.5" id="amplB">
+            <select class="field-select" id="unitB"><option>Vpp</option><option>Vrms</option><option>dBm</option></select>
+            <button class="btn small" onclick="setAmpl('B')">Уст</button>
+            <button class="btn small" onclick="queryAmpl('B')">Запр</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Форма</div>
+            <select class="field-select" id="waveB" style="flex:1">
+              <option>Square</option><option>Sine</option><option>Triangle</option><option>Ramp</option>
+            </select>
+            <button class="btn small" onclick="setWave('B')">Уст</button>
+            <button class="btn small" onclick="log('B: форма запрошена','query')">Запр</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Выход</div>
+            <input type="checkbox" class="field-check" id="outB">
+            <label for="outB" style="font-size:12px;color:var(--text);cursor:pointer"> Включён</label>
+            <button class="btn small" onclick="setOut('B')" style="margin-left:auto">Уст</button>
+            <button class="btn small" onclick="queryOut('B')">Запр</button>
+          </div>
+          <div class="last-op" id="lopB">⏱ Посл. операция: —</div>
+        </div>
+
+      </div><!-- /channels-row -->
+    </div><!-- /pageAkip -->
+
+    <!-- ─── GRATTEN page ─── -->
+    <div class="page" id="pageGratten">
+      <div class="group-box gratten-panel">
+        <div class="group-title">📡 Gratten GA1483</div>
+
+        <!-- Basic -->
+        <div class="field-row">
+          <div class="field-label">Частота</div>
+          <input class="field-input" type="text" value="1000000000" id="gFreq">
+          <div class="field-unit">Гц</div>
+          <button class="btn small" onclick="gSet('Частота',document.getElementById(\'gFreq\').value+\' Гц\')">Установить</button>
+          <button class="btn small" onclick="gQuery('Частота')">Запрос</button>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Мощность</div>
+          <input class="field-input" type="text" value="-10.0" id="gPow">
+          <div class="field-unit">dBm</div>
+          <button class="btn small" onclick="gSet('Мощность',document.getElementById(\'gPow\').value+\' dBm\')">Установить</button>
+          <button class="btn small" onclick="gQuery('Мощность')">Запрос</button>
+        </div>
+        <div class="field-row">
+          <div class="field-label">RF Выход</div>
+          <input type="checkbox" class="field-check" id="gOut" checked>
+          <label for="gOut" style="font-size:12px;color:var(--text);cursor:pointer"> Включён</label>
+          <button class="btn small" onclick="gSet('RF',document.getElementById(\'gOut\').checked?'ON':'OFF')" style="margin-left:auto">Установить</button>
+          <button class="btn small" onclick="gQuery('RF выход')">Запрос</button>
+        </div>
+
+        <!-- Collapsible: FM -->
+        <div class="collapse-header" onclick="toggleSection('fm')">
+          <span class="collapse-arrow" id="arrow-fm">▶</span>
+          FM Модуляция
+        </div>
+        <div class="collapse-body" id="body-fm">
+          <div class="field-row">
+            <div class="field-label">Девиация</div>
+            <input class="field-input" type="text" value="100000" id="fmDev">
+            <div class="field-unit">Гц</div>
+            <button class="btn small" onclick="gSet('FM девиация',document.getElementById(\'fmDev\').value+\' Гц\')">Уст</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Частота</div>
+            <input class="field-input" type="text" value="1000" id="fmRate">
+            <div class="field-unit">Гц</div>
+            <button class="btn small" onclick="gSet('FM частота',document.getElementById(\'fmRate\').value+\' Гц\')">Уст</button>
+          </div>
+          <div class="field-row">
+            <input type="checkbox" class="field-check" id="fmOn">
+            <label for="fmOn" style="font-size:12px;color:var(--text);cursor:pointer"> FM включён</label>
+            <button class="btn small" onclick="gSet('FM',document.getElementById(\'fmOn\').checked?'ON':'OFF')" style="margin-left:auto">Применить</button>
+          </div>
+        </div>
+
+        <!-- Collapsible: PM -->
+        <div class="collapse-header" onclick="toggleSection('pm')">
+          <span class="collapse-arrow" id="arrow-pm">▶</span>
+          PM Модуляция
+        </div>
+        <div class="collapse-body" id="body-pm">
+          <div class="field-row">
+            <div class="field-label">Девиация</div>
+            <input class="field-input" type="text" value="1.57" id="pmDev">
+            <div class="field-unit">рад</div>
+            <button class="btn small" onclick="gSet('PM девиация',document.getElementById(\'pmDev\').value+\' рад\')">Уст</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Частота</div>
+            <input class="field-input" type="text" value="1000" id="pmRate">
+            <div class="field-unit">Гц</div>
+            <button class="btn small" onclick="gSet('PM частота',document.getElementById(\'pmRate\').value+\' Гц\')">Уст</button>
+          </div>
+          <div class="field-row">
+            <input type="checkbox" class="field-check" id="pmOn">
+            <label for="pmOn" style="font-size:12px;color:var(--text);cursor:pointer"> PM включён</label>
+            <button class="btn small" onclick="gSet('PM',document.getElementById(\'pmOn\').checked?'ON':'OFF')" style="margin-left:auto">Применить</button>
+          </div>
+        </div>
+
+        <!-- Collapsible: Sweep -->
+        <div class="collapse-header" onclick="toggleSection('swp')">
+          <span class="collapse-arrow" id="arrow-swp">▶</span>
+          Sweep (перестройка)
+        </div>
+        <div class="collapse-body" id="body-swp">
+          <div class="field-row">
+            <div class="field-label">Старт</div>
+            <input class="field-input" type="text" value="100000000" id="swpStart">
+            <div class="field-unit">Гц</div>
+            <button class="btn small" onclick="gSet('Sweep старт',document.getElementById(\'swpStart\').value+\' Гц\')">Уст</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Стоп</div>
+            <input class="field-input" type="text" value="200000000" id="swpStop">
+            <div class="field-unit">Гц</div>
+            <button class="btn small" onclick="gSet('Sweep стоп',document.getElementById(\'swpStop\').value+\' Гц\')">Уст</button>
+          </div>
+          <div class="field-row">
+            <div class="field-label">Пауза</div>
+            <input class="field-input" type="text" value="0.1" id="swpDwell">
+            <div class="field-unit">с</div>
+            <button class="btn small" onclick="gSet('Sweep пауза',document.getElementById(\'swpDwell\').value+\' с\')">Уст</button>
+          </div>
+          <div class="field-row">
+            <input type="checkbox" class="field-check" id="swpOn">
+            <label for="swpOn" style="font-size:12px;color:var(--text);cursor:pointer"> Sweep включён</label>
+            <button class="btn small" onclick="gSet('Sweep',document.getElementById(\'swpOn\').checked?'ON':'OFF')" style="margin-left:auto">Применить</button>
+          </div>
+        </div>
+
+      </div><!-- /gratten group-box -->
+    </div><!-- /pageGratten -->
+
+    <!-- ─── LOG ─── -->
+    <div>
+      <div class="log-toolbar">
+        <button class="btn small" onclick="document.getElementById('logArea').innerHTML=''">Очистить</button>
+      </div>
+      <div class="log-area" id="logArea">
+        <div>[12:00:00.000] Программа запущена</div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="sb-item disconnected" id="sbDevice">Не подключено</div>
+    <div class="sb-item" id="sbConn">—</div>
+    <div class="sb-item" id="sbLastOp">—</div>
+    <div class="sb-item" style="margin-left:auto;color:var(--overlay0)">v0.2.0</div>
+  </div>
+
+</div><!-- /app-window -->
+
+<!-- ─── PALETTE LEGEND ─── -->
+<div class="legend">
+  <h2>Цветовая палитра — Catppuccin Mocha</h2>
+  <div class="palette">
+    <div class="swatch"><div class="swatch-dot" style="background:#1e1e2e;border:1px solid #45475a"></div><div><div class="swatch-name">Base #1e1e2e</div><div class="swatch-info">Основной фон</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#252535;border:1px solid #45475a"></div><div><div class="swatch-name">#252535</div><div class="swatch-info">Карточки/GroupBox</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#313244"></div><div><div class="swatch-name">Surface0 #313244</div><div class="swatch-info">Кнопки, бордеры</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#181825"></div><div><div class="swatch-name">Mantle #181825</div><div class="swatch-info">Toolbar, MenuBar, Input bg</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#11111b"></div><div><div class="swatch-name">Crust #11111b</div><div class="swatch-info">StatusBar, Log bg</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#89b4fa"></div><div><div class="swatch-name">Blue #89b4fa</div><div class="swatch-info">Акцент, заголовки, focus</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#a6e3a1"></div><div><div class="swatch-name">Green #a6e3a1</div><div class="swatch-info">Подключено / OK</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#f38ba8"></div><div><div class="swatch-name">Red #f38ba8</div><div class="swatch-info">Ошибка / Отключить</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#cdd6f4"></div><div><div class="swatch-name">Text #cdd6f4</div><div class="swatch-info">Основной текст</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#a6adc8"></div><div><div class="swatch-name">Subtext0 #a6adc8</div><div class="swatch-info">Вторичный текст</div></div></div>
+    <div class="swatch"><div class="swatch-dot" style="background:#6c7086"></div><div><div class="swatch-name">Overlay0 #6c7086</div><div class="swatch-info">Disabled, placeholder</div></div></div>
+  </div>
+</div>
+
+<script>
+let connected = false;
+let currentDevice = '';
+
+function now() {
+  return new Date().toTimeString().slice(0,12).replace(' ','.');
+}
+
+function log(msg, type) {
+  const el = document.getElementById('logArea');
+  const color = type === 'cmd' ? '#a6e3a1' : type === 'query' ? '#89b4fa' : type === 'err' ? '#f38ba8' : '#a6adc8';
+  el.innerHTML += `<div style="color:${color}">[${now()}] ${msg}</div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+}
+
+function fakeMs() { return Math.floor(Math.random()*15 + 3); }
+
+function connectDevice() {
+  const choice = prompt(
+    'Выберите устройство:\n1 — АКИП-3417 (USB)\n2 — Gratten GA1483 (LAN)',
+    '1'
+  );
+  if (choice === '1') {
+    connected = true;
+    currentDevice = 'AKIP';
+    setConnected('АКИП-3417', 'USB CH375');
+    showPage('akip');
+    log('Подключено устройство: АКИП-3417,DDS Function Gen,FW1.2', 'cmd');
+  } else if (choice === '2') {
+    connected = true;
+    currentDevice = 'GRATTEN';
+    setConnected('Gratten GA1483', '192.168.1.66:5025');
+    showPage('gratten');
+    log('Подключено устройство: Gratten GA1483,RF Gen,1.0', 'cmd');
+  }
+}
+
+function setConnected(name, addr) {
+  document.getElementById('lblStatus').textContent = '⬤ Подключено';
+  document.getElementById('lblStatus').style.color = 'var(--green)';
+  document.getElementById('btnDisconn').disabled = false;
+  document.getElementById('btnIdn').disabled = false;
+  document.getElementById('btnReset').disabled = false;
+  document.getElementById('sbDevice').textContent = name;
+  document.getElementById('sbDevice').className = 'sb-item connected';
+  document.getElementById('sbConn').textContent = addr;
+}
+
+function disconnectDevice() {
+  connected = false; currentDevice = '';
+  document.getElementById('lblStatus').textContent = '⬤ Не подключено';
+  document.getElementById('lblStatus').style.color = 'var(--red)';
+  document.getElementById('btnDisconn').disabled = true;
+  document.getElementById('btnIdn').disabled = true;
+  document.getElementById('btnReset').disabled = true;
+  document.getElementById('sbDevice').textContent = 'Не подключено';
+  document.getElementById('sbDevice').className = 'sb-item disconnected';
+  document.getElementById('sbConn').textContent = '—';
+  document.getElementById('sbLastOp').textContent = '—';
+  showPage('splash');
+  log('Устройство отключено', 'err');
+}
+
+function sendIdn() {
+  const ms = fakeMs();
+  const idn = currentDevice === 'AKIP'
+    ? 'АКИП-3417,DDS Function Gen,SN001,FW1.2'
+    : 'Gratten,GA1483,RF Signal Gen,1.0';
+  document.getElementById('sbLastOp').textContent = `*IDN? — ${ms} мс`;
+  log(`*IDN? → ${idn} (${ms} мс)`, 'query');
+}
+
+function setFreq(ch) {
+  if (!connected) return;
+  const v = document.getElementById('freq'+ch).value;
+  const ms = fakeMs();
+  document.getElementById('lop'+ch).textContent = `⏱ Посл. операция: ${ms} мс`;
+  document.getElementById('sbLastOp').textContent = `Частота CH${ch} — ${ms} мс`;
+  log(`Канал ${ch}: частота установлена ${v} Гц (${ms} мс)`, 'cmd');
+}
+
+function queryFreq(ch) {
+  if (!connected) return;
+  const ms = fakeMs();
+  const v = Math.floor(Math.random()*9e6+1e5);
+  document.getElementById('freq'+ch).value = v;
+  document.getElementById('lop'+ch).textContent = `⏱ Посл. операция: ${ms} мс`;
+  log(`Канал ${ch}: запрос частоты → ${v} Гц (${ms} мс)`, 'query');
+}
+
+function setAmpl(ch) {
+  if (!connected) return;
+  const v = document.getElementById('ampl'+ch).value;
+  const u = document.getElementById('unit'+ch).value;
+  const ms = fakeMs();
+  document.getElementById('lop'+ch).textContent = `⏱ Посл. операция: ${ms} мс`;
+  log(`Канал ${ch}: амплитуда ${v} ${u} установлена (${ms} мс)`, 'cmd');
+}
+
+function queryAmpl(ch) {
+  if (!connected) return;
+  const ms = fakeMs();
+  const v = (Math.random()*4+0.1).toFixed(3);
+  document.getElementById('ampl'+ch).value = v;
+  log(`Канал ${ch}: запрос амплитуды → ${v} Vpp (${ms} мс)`, 'query');
+}
+
+function setWave(ch) {
+  if (!connected) return;
+  const v = document.getElementById('wave'+ch).value;
+  const ms = fakeMs();
+  document.getElementById('lop'+ch).textContent = `⏱ Посл. операция: ${ms} мс`;
+  log(`Канал ${ch}: форма ${v} установлена (${ms} мс)`, 'cmd');
+}
+
+function setOut(ch) {
+  if (!connected) return;
+  const v = document.getElementById('out'+ch).checked;
+  const ms = fakeMs();
+  document.getElementById('lop'+ch).textContent = `⏱ Посл. операция: ${ms} мс`;
+  log(`Канал ${ch}: выход ${v?'ON':'OFF'} (${ms} мс)`, 'cmd');
+}
+
+function queryOut(ch) {
+  if (!connected) return;
+  const ms = fakeMs();
+  const v = Math.random() > 0.5;
+  document.getElementById('out'+ch).checked = v;
+  log(`Канал ${ch}: запрос выхода → ${v?'ON':'OFF'} (${ms} мс)`, 'query');
+}
+
+function gSet(param, val) {
+  if (!connected) return;
+  const ms = fakeMs();
+  document.getElementById('sbLastOp').textContent = `${param} — ${ms} мс`;
+  log(`Gratten: ${param} = ${val} (${ms} мс)`, 'cmd');
+}
+
+function gQuery(param) {
+  if (!connected) return;
+  const ms = fakeMs();
+  log(`Gratten: запрос ${param} (${ms} мс)`, 'query');
+}
+
+function toggleSection(id) {
+  const body  = document.getElementById('body-'  + id);
+  const arrow = document.getElementById('arrow-' + id);
+  const open  = body.classList.toggle('open');
+  arrow.classList.toggle('open', open);
+}
+
+function openSettings() {
+  alert('Настройки подключения:\n\nGratten GA1483 (LAN)\n  IP: 192.168.1.66\n  Порт: 5025\n  Таймаут: 3000 мс\n\nАКИП-3417 (USB)\n  Индекс устройства: 0');
+}
+
+// Init — show splash tab
+document.getElementById('tabSplash').classList.add('active');
+</script>
+</body>
+</html>

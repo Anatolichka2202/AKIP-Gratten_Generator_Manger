@@ -54,6 +54,7 @@ add_executable(AKIP-manager_module ${SOURCES}
     settingsdialog.h settingsdialog.cpp settingsdialog.ui
     itransport.h
     mocktransport.h mocktransport.cpp
+    splashwidget.h splashwidget.cpp
     thememanager.h
     resources.qrc
 )
