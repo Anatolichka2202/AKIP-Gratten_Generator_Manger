@@ -1,6 +1,10 @@
 # Build output
 build/
+build_release/
+build_static/
+deploy/
 *.user
+CMakeLists.txt.user
 
 # Qt generated
 *.pro.user
