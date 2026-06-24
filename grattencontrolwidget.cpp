@@ -62,7 +62,6 @@ void GrattenControlWidget::appendToTerminal(const QString &text, bool isCommand,
 
     QString formatted = QString("[%1] %2%3").arg(timestamp).arg(prefix).arg(text);
     ui->terminalEdit->appendPlainText(formatted);
-    qDebug() << "[Terminal]" << formatted;
     emit logMessage(formatted); // для дублирования в главный лог (если нужно)
 }
 

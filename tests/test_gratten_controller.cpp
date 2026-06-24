@@ -103,6 +103,14 @@ private slots:
     // Test setAMDepth
     void testSetAMDepth_Valid();
 
+    // Test query operations
+    void testQueryFrequency_Valid();
+    void testGetIdentity();
+
+    // Test power
+    void testSetPower_Valid();
+    void testSetPower_OutOfRange();
+
 private:
     MockTransport *m_mockTransport;
     TestableGrattenGa1483Controller *m_controller;
@@ -332,6 +340,67 @@ void TestGrattenController::testSetAMDepth_Valid()
         }
     }
     QVERIFY(foundAmDepthCmd);
+}
+
+void TestGrattenController::testQueryFrequency_Valid()
+{
+    m_mockTransport->setResponse(":FREQuency:CW?", "2450000000");
+    m_mockTransport->clearSentCommands();
+
+    double freq = m_controller->queryFrequency(1);
+
+    QCOMPARE(freq, 2.45e9);
+
+    QStringList cmds = m_mockTransport->sentCommands();
+    bool foundQuery = false;
+    for (const QString &c : cmds) {
+        if (c.contains(":FREQuency:CW?", Qt::CaseInsensitive)) {
+            foundQuery = true;
+            break;
+        }
+    }
+    QVERIFY(foundQuery);
+}
+
+void TestGrattenController::testGetIdentity()
+{
+    m_mockTransport->setResponse("*IDN?", "Atten,GA1483,SN00001,FW1.0");
+    m_mockTransport->clearSentCommands();
+
+    QString idn = m_controller->getIdentity();
+
+    QVERIFY(!idn.isEmpty());
+    QVERIFY(idn.contains("GA1483", Qt::CaseInsensitive)
+            || idn == "Atten,GA1483,SN00001,FW1.0");
+}
+
+void TestGrattenController::testSetPower_Valid()
+{
+    m_mockTransport->setResponse(":POWer:LEVEL?", "0");
+    m_mockTransport->clearSentCommands();
+
+    bool result = m_controller->setPower(1, 0.0);
+
+    QVERIFY(result);
+
+    bool foundPowerCmd = false;
+    for (const QString &cmd : m_mockTransport->sentCommands()) {
+        if (cmd.contains(":POWer:LEVEL", Qt::CaseInsensitive)) {
+            foundPowerCmd = true;
+            break;
+        }
+    }
+    QVERIFY(foundPowerCmd);
+}
+
+void TestGrattenController::testSetPower_OutOfRange()
+{
+    // GA1483 range: -136 to +13 dBm
+    bool result = m_controller->setPower(1, 20.0); // above +13 dBm
+    QVERIFY(!result);
+
+    result = m_controller->setPower(1, -200.0); // below -136 dBm
+    QVERIFY(!result);
 }
 
 QTEST_MAIN(TestGrattenController)

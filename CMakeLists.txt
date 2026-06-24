@@ -58,6 +58,7 @@ add_executable(AKIP-manager_module ${SOURCES}
     diagnosticsdialog.h diagnosticsdialog.cpp
     thememanager.h
     resources.qrc
+    $<$<PLATFORM_ID:Windows>:app.rc>
 )
 
 # Включаем автоматический запуск MOC
@@ -148,8 +149,22 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 install(TARGETS AKIP-manager_module
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION .
 )
+
+# Install translations
+install(
+    FILES
+        ${CMAKE_BINARY_DIR}/ru_RU.qm
+        ${CMAKE_BINARY_DIR}/en_US.qm
+    DESTINATION translations
+    OPTIONAL
+)
+
+# Install CH375 DLL on Windows
+if(WIN32)
+    install(FILES "${CH375_DLL_FILE}" DESTINATION .)
+endif()
 
 # Enable testing
 enable_testing()

@@ -70,10 +70,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->horizontalLayout_2->insertWidget(0, m_channelA);
     ui->horizontalLayout_2->insertWidget(1, m_channelB);
 
-    // Remove the old group boxes from UI
-    ui->grpChannelA->hide();
-    ui->grpChannelB->hide();
-
     // Connect channel widgets' log signals to main window
     connect(m_channelA, &ChannelWidget::logMessage, this, &MainWindow::onChannelWidgetLogMessage);
     connect(m_channelB, &ChannelWidget::logMessage, this, &MainWindow::onChannelWidgetLogMessage);

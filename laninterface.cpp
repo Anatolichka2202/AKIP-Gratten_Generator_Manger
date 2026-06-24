@@ -69,7 +69,9 @@ bool LanInterface::sendScpiCommand(const QString &command)
         return false;
     }
     m_socket->flush();
+#ifndef QT_NO_DEBUG
     qDebug() << "[LAN] Отправлено:" << command;
+#endif
     return true;
 }
 
@@ -83,10 +85,14 @@ QString LanInterface::queryScpiCommand(const QString &command, int timeoutMs, in
 
         response = waitForResponse(timeoutMs > 0 ? timeoutMs : m_responseTimeout);
         if (!response.isEmpty()) {
+#ifndef QT_NO_DEBUG
             qDebug() << "[LAN] Получено:" << response;
+#endif
             break;
         }
+#ifndef QT_NO_DEBUG
         qDebug() << "[LAN] Попытка" << attempt+1 << "неудачна, повтор...";
+#endif
         QThread::msleep(100);
     }
     return response;

@@ -49,3 +49,25 @@ target_include_directories(test_gratten_controller
 )
 
 add_test(NAME GrattenControllerTests COMMAND test_gratten_controller)
+
+# Test SettingsManager
+add_executable(test_settings_manager
+    test_settings_manager.cpp
+    ${CMAKE_SOURCE_DIR}/settingsmanager.cpp
+    ${CMAKE_SOURCE_DIR}/settingsmanager.h
+)
+
+set_target_properties(test_settings_manager PROPERTIES
+    AUTOMOC ON
+)
+
+target_link_libraries(test_settings_manager
+    PRIVATE Qt${QT_VERSION_MAJOR}::Test
+    PRIVATE Qt${QT_VERSION_MAJOR}::Core
+)
+
+target_include_directories(test_settings_manager
+    PRIVATE ${CMAKE_SOURCE_DIR}
+)
+
+add_test(NAME SettingsManagerTests COMMAND test_settings_manager)

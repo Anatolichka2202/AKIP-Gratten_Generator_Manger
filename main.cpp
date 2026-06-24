@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QIcon>
 #include "mainwindow.h"
 #include "version.h"
 #include "thememanager.h"
@@ -11,6 +12,8 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName(APP_ORG);
     QCoreApplication::setOrganizationDomain(APP_ORG_DOMAIN);
     QCoreApplication::setApplicationVersion(APP_VERSION_STRING);
+
+    app.setWindowIcon(QIcon(":/icons/design/icons/app.ico"));
 
     QCommandLineParser parser;
     parser.addOption({"light", "Use light theme (default: dark)"});
