@@ -3,6 +3,7 @@
 
 #include <QGroupBox>
 #include <QElapsedTimer>
+#include <QEvent>
 #include "iakipcontroller.h"
 
 QT_BEGIN_NAMESPACE
@@ -35,6 +36,9 @@ private slots:
     void onOutputChanged(int channel, bool enabled);
     void onAmplitudeChanged(int channel, double amplitude);
     void onWaveformChanged(int channel, const QString &waveform);
+
+protected:
+    void changeEvent(QEvent *event) override;
 
 private:
     Ui::ChannelWidget *ui;

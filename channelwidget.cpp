@@ -1,5 +1,6 @@
 #include "channelwidget.h"
 #include "ui_channelwidget.h"
+#include <QEvent>
 
 ChannelWidget::ChannelWidget(int channelNumber, IAkipController *controller, QWidget *parent)
     : QGroupBox(parent)
@@ -274,4 +275,11 @@ void ChannelWidget::onWaveformChanged(int channel, const QString &waveform)
         if (idx >= 0)
             ui->cmbWaveform->setCurrentIndex(idx);
     }
+}
+
+void ChannelWidget::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange)
+        ui->retranslateUi(this);
+    QGroupBox::changeEvent(event);
 }

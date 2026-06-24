@@ -1,12 +1,17 @@
 #include "splashwidget.h"
 #include "version.h"
 #include <QHBoxLayout>
+#include <QEvent>
 
 SplashWidget::SplashWidget(QWidget *parent)
     : QWidget(parent)
     , m_lastDeviceLabel(new QLabel(tr("Последнее устройство: —"), this))
+    , m_statusText(new QLabel(this))
+    , m_hint(new QLabel(this))
+    , m_devInfo(new QLabel(this))
     , m_btnQuickConnect(new QPushButton(this))
-    , m_btnOther(new QPushButton(tr("Выбрать устройство..."), this))
+    , m_btnOther(new QPushButton(this))
+    , m_btnSettings(new QPushButton(this))
 {
     auto *outer = new QVBoxLayout(this);
     outer->setAlignment(Qt::AlignCenter);
@@ -36,12 +41,11 @@ SplashWidget::SplashWidget(QWidget *parent)
     auto *statusDot = new QLabel("⬤", this);
     statusDot->setObjectName("splashStatusDot");
     statusDot->setStyleSheet("color: #f38ba8; font-size: 10px;");
-    auto *statusText = new QLabel(tr("Устройство не подключено"), this);
-    statusText->setObjectName("splashStatusText");
+    m_statusText->setObjectName("splashStatusText");
     statusRow->addStretch();
     statusRow->addWidget(statusDot);
     statusRow->addSpacing(6);
-    statusRow->addWidget(statusText);
+    statusRow->addWidget(m_statusText);
     statusRow->addStretch();
 
     // ── Last device label ──────────────────────────────────────────────────
@@ -56,30 +60,22 @@ SplashWidget::SplashWidget(QWidget *parent)
     m_btnQuickConnect->setVisible(false);
 
     // ── Hint ───────────────────────────────────────────────────────────────
-    auto *hint = new QLabel(
-        tr("Подключитесь к устройству через кнопку ниже\n"
-           "или настройте параметры через кнопку Настройки."), this);
-    hint->setObjectName("splashHint");
-    hint->setAlignment(Qt::AlignCenter);
-    hint->setWordWrap(true);
+    m_hint->setObjectName("splashHint");
+    m_hint->setAlignment(Qt::AlignCenter);
+    m_hint->setWordWrap(true);
 
     auto *sep2 = new QFrame(this);
     sep2->setFrameShape(QFrame::HLine);
 
     // ── Supported devices ──────────────────────────────────────────────────
-    auto *devInfo = new QLabel(
-        tr("Поддерживаемые устройства:\n"
-           "• АКИП-3417 (DDS, USB CH375, 2 канала)\n"
-           "• Gratten GA1483 (RF, LAN TCP, 1 канал)"), this);
-    devInfo->setObjectName("splashDevInfo");
-    devInfo->setAlignment(Qt::AlignLeft);
+    m_devInfo->setObjectName("splashDevInfo");
+    m_devInfo->setAlignment(Qt::AlignLeft);
 
     // ── Bottom button row ──────────────────────────────────────────────────
     auto *btnRow = new QHBoxLayout();
-    auto *btnSettings = new QPushButton(tr("Настройки"), this);
     btnRow->addStretch();
     btnRow->addWidget(m_btnOther);
-    btnRow->addWidget(btnSettings);
+    btnRow->addWidget(m_btnSettings);
     btnRow->addStretch();
 
     vbox->addWidget(title);
@@ -88,9 +84,9 @@ SplashWidget::SplashWidget(QWidget *parent)
     vbox->addWidget(m_lastDeviceLabel);
     vbox->addWidget(sep1);
     vbox->addWidget(m_btnQuickConnect);
-    vbox->addWidget(hint);
+    vbox->addWidget(m_hint);
     vbox->addWidget(sep2);
-    vbox->addWidget(devInfo);
+    vbox->addWidget(m_devInfo);
     vbox->addLayout(btnRow);
 
     outer->addStretch();
@@ -98,12 +94,18 @@ SplashWidget::SplashWidget(QWidget *parent)
     outer->addStretch();
 
     connect(m_btnOther,    &QPushButton::clicked, this, &SplashWidget::connectRequested);
-    connect(btnSettings,   &QPushButton::clicked, this, &SplashWidget::settingsRequested);
+    connect(m_btnSettings, &QPushButton::clicked, this, &SplashWidget::settingsRequested);
+
+    retranslateStrings();
 }
 
 void SplashWidget::setLastDevice(const QString &name, const QString &address,
                                   const QString &deviceType)
 {
+    m_lastDeviceName    = name;
+    m_lastDeviceAddress = address;
+    m_lastDeviceType    = deviceType;
+
     if (name.isEmpty()) {
         m_lastDeviceLabel->setText(tr("Последнее устройство: —"));
         m_btnQuickConnect->setVisible(false);
@@ -116,9 +118,32 @@ void SplashWidget::setLastDevice(const QString &name, const QString &address,
     m_btnQuickConnect->setText(tr("⟳ Переподключиться к %1").arg(name));
     m_btnQuickConnect->setVisible(true);
 
-    // Reconnect the signal with the current deviceType captured
     disconnect(m_btnQuickConnect, nullptr, nullptr, nullptr);
     connect(m_btnQuickConnect, &QPushButton::clicked, this, [this, deviceType]() {
         emit quickConnectRequested(deviceType);
     });
+}
+
+void SplashWidget::retranslateStrings()
+{
+    m_statusText->setText(tr("Устройство не подключено"));
+    m_btnOther->setText(tr("Выбрать устройство..."));
+    m_btnSettings->setText(tr("Настройки"));
+    m_hint->setText(tr("Подключитесь к устройству через кнопку ниже\n"
+                       "или настройте параметры через кнопку Настройки."));
+    m_devInfo->setText(tr("Поддерживаемые устройства:\n"
+                          "• АКИП-3417 (DDS, USB CH375, 2 канала)\n"
+                          "• Gratten GA1483 (RF, LAN TCP, 1 канал)"));
+
+    if (!m_lastDeviceName.isEmpty())
+        setLastDevice(m_lastDeviceName, m_lastDeviceAddress, m_lastDeviceType);
+    else
+        m_lastDeviceLabel->setText(tr("Последнее устройство: —"));
+}
+
+void SplashWidget::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange)
+        retranslateStrings();
+    QWidget::changeEvent(event);
 }

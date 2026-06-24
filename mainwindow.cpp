@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QEvent>
 #include "settingsmanager.h"
 #include "settingsdialog.h"
 #include "languageswitcher.h"
@@ -100,6 +101,19 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+// ==================== Смена языка ====================
+
+void MainWindow::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange) {
+        ui->retranslateUi(this);
+        updateConnectionStatus();
+        updateStatusBar();
+        showSplash();
+    }
+    QMainWindow::changeEvent(event);
+}
+
 // ==================== Меню ====================
 
 void MainWindow::setupMenu()
@@ -143,7 +157,7 @@ void MainWindow::setChannelControlsEnabled(bool enabled)
         // In AKIP mode, enable channel A/B and delays
         if (m_channelA) m_channelA->setEnabled(enabled);
         if (m_channelB) m_channelB->setEnabled(enabled);
-        ui->grpDelays->setEnabled(enabled);
+        //ui->grpDelays->setEnabled(enabled);
     }
 }
 

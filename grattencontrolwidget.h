@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QElapsedTimer>
+#include <QEvent>
 #include "iakipcontroller.h"
 
 namespace Ui {
@@ -35,6 +36,9 @@ private slots:
     void onAmplitudeChanged(int channel, double amplitude);
     void onOutputChanged(int channel, bool enabled);
     void onError(const QString &error);
+
+protected:
+    void changeEvent(QEvent *event) override;
 
 private:
     Ui::GrattenControlWidget *ui;

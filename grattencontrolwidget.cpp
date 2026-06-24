@@ -1,6 +1,7 @@
 #include "grattencontrolwidget.h"
 #include "ui_grattencontrolwidget.h"
 #include "sweepdialog.h"
+#include <QEvent>
 #include "modulationdialog.h"
 #include <QDateTime>
 #include <QDebug>
@@ -254,4 +255,11 @@ void GrattenControlWidget::onModulationClicked()
 {
     ModulationDialog dlg(m_controller, 1, this);
     dlg.exec();
+}
+
+void GrattenControlWidget::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange)
+        ui->retranslateUi(this);
+    QWidget::changeEvent(event);
 }

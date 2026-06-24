@@ -70,6 +70,9 @@ private:
     void setupMenu();
     void showSplash();
 
+protected:
+    void changeEvent(QEvent *event) override;
+
     SplashWidget *m_splashPage;
 };
 

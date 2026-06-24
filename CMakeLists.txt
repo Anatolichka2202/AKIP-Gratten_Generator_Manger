@@ -27,11 +27,16 @@ endif()
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Network)
 
-# i18n support
+# i18n support — LinguistTools may live in the dynamic Qt even for static builds
 if(Qt6_FOUND)
-    find_package(Qt6 COMPONENTS LinguistTools REQUIRED)
+    find_package(Qt6 COMPONENTS LinguistTools QUIET)
+    if(NOT Qt6LinguistTools_FOUND)
+        # Static Qt builds omit tools — fall back to dynamic Qt installation
+        find_package(Qt6 COMPONENTS LinguistTools
+            PATHS "C:/Qt/6.8.0/mingw_64" NO_DEFAULT_PATH QUIET)
+    endif()
 else()
-    find_package(Qt5 COMPONENTS LinguistTools REQUIRED)
+    find_package(Qt5 COMPONENTS LinguistTools QUIET)
 endif()
 
 # Создаем исполняемый файл
