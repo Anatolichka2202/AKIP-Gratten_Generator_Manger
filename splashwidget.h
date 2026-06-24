@@ -10,12 +10,18 @@ class SplashWidget : public QWidget
 public:
     explicit SplashWidget(QWidget *parent = nullptr);
 
-    void setLastDevice(const QString &name, const QString &address);
+    // Call with non-empty args to show quick-reconnect button.
+    // deviceType: "AKIP" | "GRATTEN" | "" (clears quick-connect)
+    void setLastDevice(const QString &name, const QString &address,
+                       const QString &deviceType = QString());
 
 signals:
-    void connectRequested();
+    void connectRequested();           // open device selection dialog
+    void quickConnectRequested(const QString &deviceType); // direct reconnect
     void settingsRequested();
 
 private:
-    QLabel *m_lastDeviceLabel;
+    QLabel      *m_lastDeviceLabel;
+    QPushButton *m_btnQuickConnect;
+    QPushButton *m_btnOther;
 };

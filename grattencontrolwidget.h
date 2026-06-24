@@ -27,8 +27,9 @@ private slots:
     void onQueryAmplClicked();
     void onSetOutputClicked();
     void onQueryOutputClicked();
-    void onSendCommandClicked(); // новая кнопка
+    void onSendCommandClicked();
     void onSweepClicked();
+    void onModulationClicked();
 
     void onFrequencyChanged(int channel, double freq);
     void onAmplitudeChanged(int channel, double amplitude);
@@ -42,6 +43,8 @@ private:
 
     void updateLastOpTime(qint64 elapsedMs);
     void appendToTerminal(const QString &text, bool isCommand = false, bool isError = false);
+    double freqToHz() const;
+    void setFreqFromHz(double hz);
 };
 
 #endif // GRATTENCONTROLWIDGET_H

@@ -20,12 +20,36 @@
      <item>
       <widget class="QLabel" name="labelFreq">
        <property name="text">
-        <string>Частота (Гц):</string>
+        <string>Частота:</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLineEdit" name="editFreq"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cmbFreqUnit">
+       <item>
+        <property name="text">
+         <string>MHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>GHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>kHz</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Hz</string>
+        </property>
+       </item>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="btnSetFreq">
@@ -120,6 +144,13 @@
       <widget class="QPushButton" name="btnSweep">
        <property name="text">
         <string>Свип...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnModulation">
+       <property name="text">
+        <string>Модуляция...</string>
        </property>
       </widget>
      </item>
