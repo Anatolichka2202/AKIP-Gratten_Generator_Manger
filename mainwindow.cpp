@@ -33,6 +33,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->stackedWidget->addWidget(m_splashPage);
     connect(m_splashPage, &SplashWidget::connectRequested,
             this, &MainWindow::on_btnConnect_clicked);
+    connect(m_splashPage, &SplashWidget::quickConnectRequested, this,
+            [this](const QString &deviceType) {
+                switchToDevice(deviceType == "AKIP" ? AKIP : GRATTEN);
+            });
     connect(m_splashPage, &SplashWidget::settingsRequested, this, [this]() {
         SettingsDialog dlg(this);
         dlg.exec();
@@ -507,12 +511,13 @@ void MainWindow::showSplash()
     auto &cfg = SettingsManager::instance();
     QString lastType = cfg.lastDeviceType();
     if (lastType == "AKIP") {
-        m_splashPage->setLastDevice(tr("АКИП-3417"), tr("USB"));
+        m_splashPage->setLastDevice(tr("АКИП-3417"), tr("USB"), "AKIP");
     } else if (lastType == "GRATTEN") {
         m_splashPage->setLastDevice(tr("Gratten GA1483"),
-            QString("%1:%2").arg(cfg.grattenHost()).arg(cfg.grattenPort()));
+            QString("%1:%2").arg(cfg.grattenHost()).arg(cfg.grattenPort()),
+            "GRATTEN");
     } else {
-        m_splashPage->setLastDevice("", "");
+        m_splashPage->setLastDevice("", "", "");
     }
     ui->stackedWidget->setCurrentWidget(m_splashPage);
 }
