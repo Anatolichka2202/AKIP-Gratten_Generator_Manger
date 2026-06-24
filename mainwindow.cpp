@@ -81,9 +81,9 @@ MainWindow::MainWindow(QWidget *parent)
     showSplash();
 
     // Setup Help menu with About dialog
-    QMenu *helpMenu = menuBar()->addMenu(tr("Справка"));
-    QAction *aboutAction = helpMenu->addAction(tr("О программе..."));
-    connect(aboutAction, &QAction::triggered, this, [this]() {
+    m_menuHelp = menuBar()->addMenu(tr("Справка"));
+    m_actAbout = m_menuHelp->addAction(tr("О программе..."));
+    connect(m_actAbout, &QAction::triggered, this, [this]() {
         AboutDialog dlg(this);
         dlg.exec();
     });
@@ -107,6 +107,7 @@ void MainWindow::changeEvent(QEvent *event)
 {
     if (event->type() == QEvent::LanguageChange) {
         ui->retranslateUi(this);
+        retranslateMenus();
         updateConnectionStatus();
         updateStatusBar();
         showSplash();
@@ -118,24 +119,34 @@ void MainWindow::changeEvent(QEvent *event)
 
 void MainWindow::setupMenu()
 {
-    QMenu *menuSettings = menuBar()->addMenu(tr("Настройки"));
-    QAction *actConnection = menuSettings->addAction(tr("Подключение..."));
-    connect(actConnection, &QAction::triggered, this, [this]() {
+    m_menuSettings = menuBar()->addMenu(tr("Настройки"));
+    m_actConnection = m_menuSettings->addAction(tr("Подключение..."));
+    connect(m_actConnection, &QAction::triggered, this, [this]() {
         SettingsDialog dlg(this);
         dlg.exec();
     });
 
     if (m_langSwitcher) {
-        menuSettings->addSeparator();
-        menuSettings->addMenu(m_langSwitcher->createLanguageMenu(this));
+        m_menuSettings->addSeparator();
+        m_menuSettings->addMenu(m_langSwitcher->createLanguageMenu(this));
     }
 
-    QMenu *menuTools = menuBar()->addMenu(tr("Инструменты"));
-    QAction *actDiag = menuTools->addAction(tr("Диагностика..."));
-    connect(actDiag, &QAction::triggered, this, [this]() {
+    m_menuTools = menuBar()->addMenu(tr("Инструменты"));
+    m_actDiag = m_menuTools->addAction(tr("Диагностика..."));
+    connect(m_actDiag, &QAction::triggered, this, [this]() {
         DiagnosticsDialog dlg(m_controller, this);
         dlg.exec();
     });
+}
+
+void MainWindow::retranslateMenus()
+{
+    if (m_menuSettings)  m_menuSettings->setTitle(tr("Настройки"));
+    if (m_actConnection) m_actConnection->setText(tr("Подключение..."));
+    if (m_menuTools)     m_menuTools->setTitle(tr("Инструменты"));
+    if (m_actDiag)       m_actDiag->setText(tr("Диагностика..."));
+    if (m_menuHelp)      m_menuHelp->setTitle(tr("Справка"));
+    if (m_actAbout)      m_actAbout->setText(tr("О программе..."));
 }
 
 // ==================== Логирование и вспомогательные методы ====================

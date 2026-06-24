@@ -68,7 +68,15 @@ private:
 
     void setupForDeviceType(DeviceType type);
     void setupMenu();
+    void retranslateMenus();
     void showSplash();
+
+    QMenu   *m_menuSettings  = nullptr;
+    QMenu   *m_menuTools     = nullptr;
+    QMenu   *m_menuHelp      = nullptr;
+    QAction *m_actConnection = nullptr;
+    QAction *m_actDiag       = nullptr;
+    QAction *m_actAbout      = nullptr;
 
 protected:
     void changeEvent(QEvent *event) override;
