@@ -11,9 +11,21 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# ── Static build option ───────────────────────────────────────────────────────
+# Enable with: cmake -DSTATIC_BUILD=ON -DCMAKE_PREFIX_PATH=<path-to-static-qt>
+option(STATIC_BUILD "Link Qt and C++ runtime statically (requires static Qt build)" OFF)
+
+if(STATIC_BUILD)
+    message(STATUS "Static build enabled — CMAKE_PREFIX_PATH must point to static Qt")
+    # Link libgcc and libstdc++ into the EXE (MinGW)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+    # Full static (winpthread, etc.) — needed for a truly standalone EXE
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+endif()
+
 # Находим Qt - только Core!
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core  Widgets Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Network)
 
 # i18n support
 if(Qt6_FOUND)
@@ -36,7 +48,7 @@ set(TS_FILES
     ${CMAKE_SOURCE_DIR}/translations/en_US.ts
 )
 
-add_executable(AKIP-manager_module ${SOURCES}
+add_executable(AKIP-manager_module WIN32 ${SOURCES}
     mainwindow.h mainwindow.cpp mainwindow.ui
     channelwidget.h channelwidget.cpp channelwidget.ui
     akipfacade.h akipfacade.cpp
