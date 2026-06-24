@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QElapsedTimer>
 #include <QLabel>
 #include "iakipcontroller.h"
 #include "akipfacade.h"
@@ -33,12 +32,6 @@ private slots:
     void on_btnDisconnect_clicked();
     void on_btnIdn_clicked();
 
-    // Тестирование задержек
-    void on_btnTestIdn_clicked();
-    void on_btnTestSetFreq_clicked();
-    void on_btnTestQueryFreq_clicked();
-    void on_btnTestSeriesIdn_clicked();
-
     // Лог
     void on_btnLogClear_clicked();
     void on_btnLogSave_clicked();
@@ -62,7 +55,6 @@ private:
     void showDeviceSelectionDialog(const QString &akipIdn, const QString &grattenIdn);
 
     Ui::MainWindow *ui;
-    QElapsedTimer m_timer;
 
     QWidget *m_akipPage;
     GrattenControlWidget *m_grattenPage;

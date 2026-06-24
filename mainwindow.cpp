@@ -4,6 +4,8 @@
 #include "settingsdialog.h"
 #include "languageswitcher.h"
 #include "aboutdialog.h"
+#include "diagnosticsdialog.h"
+#include <QElapsedTimer>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QDateTime>
@@ -117,6 +119,13 @@ void MainWindow::setupMenu()
         menuSettings->addSeparator();
         menuSettings->addMenu(m_langSwitcher->createLanguageMenu(this));
     }
+
+    QMenu *menuTools = menuBar()->addMenu(tr("Инструменты"));
+    QAction *actDiag = menuTools->addAction(tr("Диагностика..."));
+    connect(actDiag, &QAction::triggered, this, [this]() {
+        DiagnosticsDialog dlg(m_controller, this);
+        dlg.exec();
+    });
 }
 
 // ==================== Логирование и вспомогательные методы ====================
@@ -226,90 +235,11 @@ void MainWindow::on_btnDisconnect_clicked()
 void MainWindow::on_btnIdn_clicked()
 {
     if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
+    QElapsedTimer t;
+    t.start();
     QString idn = m_controller->getIdentity();
-    qint64 elapsed = m_timer.elapsed();
     ui->lblIdn->setText(idn);
-    logMessage(QString(tr("*IDN? запрошен, время ответа: %1 мс, ответ: %2")).arg(elapsed).arg(idn));
-}
-
-// ==================== Тестирование задержек ====================
-
-void MainWindow::on_btnTestIdn_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    m_timer.start();
-    QString idn = m_controller->getIdentity();
-    qint64 elapsed = m_timer.elapsed();
-    ui->lblTestIdnTime->setText(QString::number(elapsed));
-    logMessage(QString(tr("[ТЕСТ] *IDN? время ответа: %1 мс, ответ: %2")).arg(elapsed).arg(idn));
-}
-
-void MainWindow::on_btnTestSetFreq_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    int channel = ui->cmbTestChannel->currentIndex() + 1;
-    double freq = ui->editTestFreq->text().toDouble();
-    if (freq <= 0) {
-        logMessage(tr("[ТЕСТ] Некорректная частота"));
-        return;
-    }
-    m_timer.start();
-    bool ok = m_controller->setFrequency(channel, freq);
-    qint64 elapsed = m_timer.elapsed();
-    if (ok) {
-        ui->lblTestSetFreqTime->setText(QString::number(elapsed));
-        logMessage(QString(tr("[ТЕСТ] Установка частоты канал %1 за %2 мс")).arg(channel).arg(elapsed));
-    } else {
-        logMessage(tr("[ТЕСТ] Ошибка отправки команды"));
-    }
-}
-
-void MainWindow::on_btnTestQueryFreq_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    int channel = ui->cmbTestChannel->currentIndex() + 1;
-    m_timer.start();
-    double freq = m_controller->queryFrequency(channel);
-    qint64 elapsed = m_timer.elapsed();
-    if (freq > 0) {
-        ui->lblTestQueryFreqTime->setText(QString::number(elapsed));
-        logMessage(QString(tr("[ТЕСТ] Запрос частоты канал %1: время ответа %2 мс, значение %3 Гц"))
-                       .arg(channel).arg(elapsed).arg(freq));
-    } else {
-        logMessage(tr("[ТЕСТ] Ошибка запроса"));
-    }
-}
-
-void MainWindow::on_btnTestSeriesIdn_clicked()
-{
-    if (!m_controller || !m_controller->isAvailable()) return;
-    const int count = 10;
-    QList<qint64> times;
-    logMessage(QString(tr("[ТЕСТ] Серия %1 запросов *IDN? ...")).arg(count));
-    for (int i = 0; i < count; ++i) {
-        m_timer.start();
-        QString idn = m_controller->getIdentity();
-        qint64 elapsed = m_timer.elapsed();
-        if (!idn.isEmpty()) {
-            times.append(elapsed);
-        } else {
-            logMessage(QString(tr("[ТЕСТ] Ошибка в запросе #%1")).arg(i+1));
-        }
-    }
-    if (times.isEmpty()) {
-        logMessage(tr("[ТЕСТ] Нет успешных запросов"));
-        return;
-    }
-    qint64 sum = 0, min = times[0], max = times[0];
-    for (qint64 t : times) {
-        sum += t;
-        if (t < min) min = t;
-        if (t > max) max = t;
-    }
-    double avg = double(sum) / times.size();
-    logMessage(QString(tr("[ТЕСТ] Статистика *IDN? (%1 запросов): мин=%2 мс, макс=%3 мс, сред=%4 мс"))
-                   .arg(times.size()).arg(min).arg(max).arg(avg, 0, 'f', 2));
+    logMessage(QString(tr("*IDN? → %1 мс  |  %2")).arg(t.elapsed()).arg(idn));
 }
 
 // ==================== Лог ====================
