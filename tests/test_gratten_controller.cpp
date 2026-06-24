@@ -379,7 +379,7 @@ void TestGrattenController::testSetPower_Valid()
     m_mockTransport->setResponse(":POWer:LEVEL?", "0");
     m_mockTransport->clearSentCommands();
 
-    bool result = m_controller->setPower(1, 0.0);
+    bool result = m_controller->setAmplitude(1, 0.0, "DBM");
 
     QVERIFY(result);
 
@@ -396,10 +396,10 @@ void TestGrattenController::testSetPower_Valid()
 void TestGrattenController::testSetPower_OutOfRange()
 {
     // GA1483 range: -136 to +13 dBm
-    bool result = m_controller->setPower(1, 20.0); // above +13 dBm
+    bool result = m_controller->setAmplitude(1, 20.0, "DBM"); // above +13 dBm
     QVERIFY(!result);
 
-    result = m_controller->setPower(1, -200.0); // below -136 dBm
+    result = m_controller->setAmplitude(1, -200.0, "DBM"); // below -136 dBm
     QVERIFY(!result);
 }
 

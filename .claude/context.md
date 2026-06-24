@@ -1,21 +1,23 @@
 # AI Context — AKIP/Gratten Generator Manager
 
+> Обновлено: 2026-06-24  |  Версия: 0.2.0  |  Статус: Alpha → Production Ready
+
 ## Проект
 Standalone Qt/C++ приложение для управления генераторами сигналов АКИП-3417 и Gratten GA1483.
-Бывший модуль, превращаемый в самостоятельный продукт.
 
 ## Стек
 - **Язык:** C++17
-- **Фреймворк:** Qt 5/6 (Core, Widgets, Network)
-- **Сборка:** CMake 3.16+
-- **Платформа:** Windows (АКИП USB требует CH375DLL64.dll)
+- **Фреймворк:** Qt 6.8.0 (Core, Widgets, Network)
+- **Сборка:** CMake 3.16+, Ninja, MinGW 13.1 x64
+- **Платформа:** Windows (USB требует CH375DLL64.dll)
 - **Протокол:** SCPI (Standard Commands for Programmable Instruments)
+- **Деплой:** Portable EXE (43 МБ, статическая линковка Qt), без инсталлятора
 
 ## Устройства
-| Устройство | Подключение | Транспорт | Канал |
-|---|---|---|---|
-| АКИП-3417 | USB (CH375) | `UsbInterface` | A, B |
-| Gratten GA1483 | LAN TCP:5025 | `LanInterface` | 1 (RF) |
+| Устройство     | Подключение | Транспорт      | Каналы |
+|----------------|-------------|----------------|--------|
+| АКИП-3417      | USB CH375   | `UsbInterface` | A, B   |
+| Gratten GA1483 | LAN TCP:5025| `LanInterface` | 1 (RF) |
 
 ## Архитектура (текущая)
 ```
@@ -23,57 +25,55 @@ IAkipController (интерфейс, QObject)
 ├── AkipFacade          → UsbInterface → CH375DLL64.dll
 └── AbstractScpiController
     └── GrattenGa1483Controller → LanInterface → QTcpSocket
+
+QMainWindow
+└── MainWindow
+    ├── QStackedWidget
+    │   ├── akipPage (ChannelWidget A + B)
+    │   ├── grattenPage (GrattenControlWidget)
+    │   └── splashPage (SplashWidget — нет устройства)
+    ├── LanguageSwitcher (ru_RU / en_US, runtime)
+    └── StatusBar (тип, адрес, последняя операция)
 ```
-`MainWindow` владеет одним `IAkipController*`, переключает страницы через `QStackedWidget`.
 
-## Известные баги (legacy)
-1. `mainwindow.cpp:299` — `on_btnSetOutputB_clicked` читает `chkOutputA` вместо `chkOutputB`
-2. `mainwindow.cpp:284` — `on_btnQueryFreqB_clicked` пишет в `editFreqA` вместо `editFreqB`
-3. `mainwindow.cpp:334,339` — `on_btnSetAmplB_clicked` читает поля канала A вместо B
-4. `mainwindow.cpp:377` — `on_btnSetWaveB_clicked` читает `cmbWaveformA` вместо `cmbWaveformB`
-5. `mainwindow.cpp:9` — IP-адрес Gratten захардкожен: `"192.168.1.66"`
-6. `akipfacade.cpp:353` — `setAMState` — заглушка, команда не отправляется
+## Что уже сделано
+- Все баги legacy-кода (BUG-001..007) исправлены
+- SettingsManager — QSettings, нет хардкодов IP/порта
+- i18n: tr() везде, ru_RU + en_US, live switching через changeEvent
+- Статическая Qt 6.8 собрана из Src/ → C:\Qt\6.8.0-static\mingw_64
+- Portable EXE: AKIP-manager_module.exe (43 МБ) + CH375DLL64.dll
+- DiagnosticsDialog: тесты задержек IDN/Freq (вынесены из MainWindow)
+- Иконка (ICO), app.rc, WindowIcon
+- qDebug заглушён в Release (#ifndef QT_NO_DEBUG)
+- Unit-тесты: GrattenController (4 теста), SettingsManager (5 тестов), MockTransport
 
-## Устройства — детали (из ресерча)
-
-### АКИП-3417 OEM: Suin Instruments (Shijiazhuang), серия TFG
-- Синтаксис команд: проприетарный (FREQ:CHA, VOLT:CHB — не стандарт)
-- Канал A: PLL-генератор (только SIN/SQUARE, до 500 МГц)
-- Канал B: DDS-генератор (SIN/SQU/RAMP/PULSE/NOISE/DC, до 10 МГц)
-- Документация: Suin TFG2900A manual (ManualsLib), TFG3600 user guide
-- Нереализовано: FM, sweep, burst, DC offset (CHB), AM source, AM:STAT (синтаксис под вопросом)
-
-### Gratten GA1483 OEM: Atten Technology
-- Протокол: стандартный SCPI (как RIGOL DSG800 / Siglent SSG3000X)
-- Эталонная документация: RIGOL DSG800 Programming Guide (публичный PDF)
-- Нереализовано: FM, PM, sweep, pulse modulation, LF output, ref oscillator, AM source
-
-## Задачи для standalone-продукта
-- [ ] Убрать все хардкоды (IP, порт) → QSettings
-- [ ] Добавить i18n (Qt Linguist, ru/en)
-- [ ] Исправить баги channel B
-- [ ] Диалог настроек подключения
-- [ ] Кросс-платформенность (или минимум — ясные ifdef)
-- [ ] Версионирование (version.h)
-- [ ] Installer (NSIS или Qt IFW)
-- [ ] Unit-тесты на контроллеры
-
-## Решения по архитектуре
-- Оставить `IAkipController` как публичный интерфейс
-- `AbstractScpiController` — общая база для всех SCPI-устройств
-- Добавить `SettingsManager` (QSettings wrapper) для персистентных настроек
-- i18n через `QTranslator` + `.ts` файлы, переключение в runtime
+## Известные ограничения
+- setAMState для АКИП-3417 — заглушка (AM:STAT синтаксис не верифицирован с железом)
+- FM/sweep/burst для АКИП-3417 — не реализованы (нужна документация)
+- Только Windows (CH375DLL)
 
 ## Файлы проекта
 | Файл | Роль |
 |---|---|
-| `iakipcontroller.h` | Публичный интерфейс (не менять API без причины) |
-| `abstractscpicontroller.h/cpp` | SCPI-база с кешем, верификацией команд |
+| `iakipcontroller.h` | Публичный интерфейс (не менять API) |
+| `abstractscpicontroller.h/cpp` | SCPI-база с кешем |
 | `akipfacade.h/cpp` | АКИП-3417 через USB/CH375 |
 | `grattenga1483controller.h/cpp` | Gratten GA1483 через LAN |
 | `grattencontrolwidget.h/cpp/.ui` | Виджет управления Gratten |
+| `channelwidget.h/cpp/.ui` | Виджет одного канала (A/B) |
 | `mainwindow.h/cpp/.ui` | Главное окно |
-| `laninterface.h/cpp` | TCP-транспорт (SCPI over LAN) |
+| `splashwidget.h/cpp` | Экран без устройства |
+| `diagnosticsdialog.h/cpp` | Диагностика: задержки IDN/Freq |
+| `languageswitcher.h/cpp` | Смена языка в runtime |
+| `settingsmanager.h/cpp` | QSettings wrapper |
+| `settingsdialog.h/cpp/.ui` | Диалог настроек подключения |
+| `laninterface.h/cpp` | TCP-транспорт |
 | `usbinterface.h/cpp` | USB-транспорт (CH375) |
-| `gratten_limits.h` | Константы/ограничения Gratten (inline QVector) |
-| `ch375_sdk/` | SDK CH375 (только Windows, .dll + .lib + .h) |
+| `mocktransport.h/cpp` | Mock для unit-тестов |
+| `translations/ru_RU.ts` | Русский (source) |
+| `translations/en_US.ts` | Английский |
+| `build_qt_static.ps1` | Сборка Qt 6.8 из Src/ (~60 мин, один раз) |
+| `deploy.ps1` | Сборка + упаковка portable (EXE + DLL) |
+| `CMakePresets.json` | release-static / release-dynamic / debug |
+| `ch375_sdk/` | SDK CH375 (.dll + .lib + .h, только Windows) |
+| `tests/` | Qt Test: граттен, настройки, транспорт |
