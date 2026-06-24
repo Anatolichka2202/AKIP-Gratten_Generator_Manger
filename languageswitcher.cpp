@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QDebug>
+#include <QActionGroup>
 
 LanguageSwitcher::LanguageSwitcher(QApplication *app, QObject *parent)
     : QObject(parent)
@@ -19,16 +20,21 @@ QMenu* LanguageSwitcher::createLanguageMenu(QWidget *menuParent)
 {
     QMenu *menu = new QMenu(tr("Язык / Language"), menuParent);
 
-    QAction *ruAction = menu->addAction(tr("Русский"));
+    QActionGroup *group = new QActionGroup(menu);
+    group->setExclusive(true);
+
+    QAction *ruAction = group->addAction(tr("Русский"));
     ruAction->setData("ru_RU");
     ruAction->setCheckable(true);
     ruAction->setChecked(m_currentLocale == "ru_RU");
+    menu->addAction(ruAction);
     connect(ruAction, &QAction::triggered, this, &LanguageSwitcher::onLanguageActionTriggered);
 
-    QAction *enAction = menu->addAction(tr("English"));
+    QAction *enAction = group->addAction(tr("English"));
     enAction->setData("en_US");
     enAction->setCheckable(true);
     enAction->setChecked(m_currentLocale == "en_US");
+    menu->addAction(enAction);
     connect(enAction, &QAction::triggered, this, &LanguageSwitcher::onLanguageActionTriggered);
 
     return menu;
@@ -38,11 +44,12 @@ void LanguageSwitcher::loadLanguage(const QString &locale)
 {
     m_app->removeTranslator(&m_translator);
 
-    // Look for .qm file in app directory and translations/ subdirectory
+    // Look for .qm file: filesystem first (dev builds), then embedded resources
     QStringList searchPaths = {
-        QCoreApplication::applicationDirPath(),
         QCoreApplication::applicationDirPath() + "/translations",
-        ":/translations"
+        QCoreApplication::applicationDirPath(),
+        ":/i18n",         // qt6_add_translations embeds here by default
+        ":/translations"  // fallback for manually placed .qm
     };
 
     bool loaded = false;
