@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QDebug>
+#include <QActionGroup>
 
 LanguageSwitcher::LanguageSwitcher(QApplication *app, QObject *parent)
     : QObject(parent)
