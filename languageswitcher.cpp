@@ -19,16 +19,21 @@ QMenu* LanguageSwitcher::createLanguageMenu(QWidget *menuParent)
 {
     QMenu *menu = new QMenu(tr("Язык / Language"), menuParent);
 
-    QAction *ruAction = menu->addAction(tr("Русский"));
+    QActionGroup *group = new QActionGroup(menu);
+    group->setExclusive(true);
+
+    QAction *ruAction = group->addAction(tr("Русский"));
     ruAction->setData("ru_RU");
     ruAction->setCheckable(true);
     ruAction->setChecked(m_currentLocale == "ru_RU");
+    menu->addAction(ruAction);
     connect(ruAction, &QAction::triggered, this, &LanguageSwitcher::onLanguageActionTriggered);
 
-    QAction *enAction = menu->addAction(tr("English"));
+    QAction *enAction = group->addAction(tr("English"));
     enAction->setData("en_US");
     enAction->setCheckable(true);
     enAction->setChecked(m_currentLocale == "en_US");
+    menu->addAction(enAction);
     connect(enAction, &QAction::triggered, this, &LanguageSwitcher::onLanguageActionTriggered);
 
     return menu;
