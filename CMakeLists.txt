@@ -11,6 +11,10 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# ── Compiler optimizations ─────────────────────────────────────────────────────
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -march=x86-64 -flto")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -flto -s")
+
 # ── Static build option ───────────────────────────────────────────────────────
 # Enable with: cmake -DSTATIC_BUILD=ON -DCMAKE_PREFIX_PATH=<path-to-static-qt>
 option(STATIC_BUILD "Link Qt and C++ runtime statically (requires static Qt build)" OFF)
